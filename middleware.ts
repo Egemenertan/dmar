@@ -83,6 +83,26 @@ export async function middleware(req: NextRequest) {
     }
   }
 
+  // Protect main dashboard (/) - require approved admin
+  if (req.nextUrl.pathname === '/' && user) {
+    try {
+      const { data: isAdmin, error: adminError } = await supabase
+        .rpc('is_approved_admin', { user_id: user.id })
+
+      if (adminError || !isAdmin) {
+        // Admin olmayan kullanıcıyı çıkış yaptır
+        const response = NextResponse.redirect(new URL('/?auth=admin_required', req.url))
+        response.cookies.delete('sb-fbqwaloizdxlxwcddykz-auth-token')
+        response.cookies.delete('sb-fbqwaloizdxlxwcddykz-auth-token.0')
+        response.cookies.delete('sb-fbqwaloizdxlxwcddykz-auth-token.1')
+        return response
+      }
+    } catch (error) {
+      const redirectUrl = new URL('/?auth=error', req.url)
+      return NextResponse.redirect(redirectUrl)
+    }
+  }
+
   // Protect API routes
   if (req.nextUrl.pathname.startsWith('/api/protected')) {
     if (!user) {
@@ -93,20 +113,18 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  // Auth callback handling
+  // Auth callback handling - şifre sıfırlama kaldırıldığı için callback'i de devre dışı bırak
   if (req.nextUrl.pathname.startsWith('/auth/callback')) {
-    // Callback sayfası sadece şifre sıfırlama için kullanılıyor
-    // Email doğrulama artık sistem tarafından kullanılmıyor
-    return response
+    // Şifre sıfırlama özelliği kaldırıldı, callback'e erişimi engelle
+    const redirectUrl = new URL('/?error=callback_disabled', req.url)
+    return NextResponse.redirect(redirectUrl)
   }
 
-  // Auth routes handling
+  // Auth routes handling - şifre sıfırlama kaldırıldığı için /auth/ rotalarını devre dışı bırak
   if (req.nextUrl.pathname.startsWith('/auth/')) {
-    // If user is already logged in, redirect to dashboard
-    if (user && req.nextUrl.pathname !== '/auth/callback') {
-      const redirectUrl = new URL('/', req.url)
-      return NextResponse.redirect(redirectUrl)
-    }
+    // Auth rotaları artık kullanılmıyor, ana sayfaya yönlendir
+    const redirectUrl = new URL('/?error=auth_disabled', req.url)
+    return NextResponse.redirect(redirectUrl)
   }
 
   // Performance optimization: Skip middleware for static files

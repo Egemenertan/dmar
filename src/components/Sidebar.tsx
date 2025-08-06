@@ -4,12 +4,11 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { BRAND_ASSETS } from "@/lib/constants"
-import { useAuth } from "@/contexts/AuthContext"
+
 import { 
   LayoutDashboard, 
   Package, 
   ShoppingCart, 
-  Users, 
   BarChart3, 
   TrendingUp,
   CreditCard,
@@ -18,9 +17,7 @@ import {
   Settings, 
   ChevronLeft,
   Menu,
-  MessageSquare,
-  ChartLine,
-  QrCode
+  ChartLine
 } from "lucide-react"
 import { useState } from "react"
 import Image from "next/image"
@@ -33,29 +30,27 @@ interface SidebarProps {
 
 export function Sidebar({ className }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false)
-  const { isApprovedAdmin } = useAuth()
   const pathname = usePathname()
 
   const allMenuItems = [
-    { icon: LayoutDashboard, label: "Ana Panel", href: "/", badge: null, adminOnly: false },
-    { icon: ChartLine, label: "Feedback Analitik", href: "/feedback-analytics", badge: null, adminOnly: false },
-    { icon: Package, label: "Stok Yönetimi", href: "/inventory", badge: null, adminOnly: false },
-    { icon: ShoppingCart, label: "Satışlar", href: "/sales", badge: null, adminOnly: false },
-    { icon: TrendingUp, label: "Raporlar", href: "/reports", badge: null, adminOnly: false },
-    { icon: CreditCard, label: "Kasa", href: "/cashier", badge: null, adminOnly: false },
-    { icon: Truck, label: "Depo", href: "/suppliers", badge: null, adminOnly: false },
-    { icon: AlertTriangle, label: "Kritik Stok", href: "/critical-stock", badge: "Acil", adminOnly: false },
-    { icon: MessageSquare, label: "Şikayetler", href: "/complaints", badge: "Admin", adminOnly: true },
-    { icon: QrCode, label: "QR Kod Oluşturucu", href: "/qr-generator", badge: "Admin", adminOnly: true },
-    { icon: Users, label: "Kullanıcı Yönetimi", href: "/admin/users", badge: "Admin", adminOnly: true },
-    { icon: BarChart3, label: "Analitik", href: "/analytics", badge: null, adminOnly: false },
-    { icon: Settings, label: "Ayarlar", href: "/settings", badge: null, adminOnly: false },
+    { icon: LayoutDashboard, label: "Ana Panel", href: "/", badge: null },
+    { icon: ChartLine, label: "Feedback Analitik", href: "/feedback-analytics", badge: null },
+    { icon: Package, label: "Stok Yönetimi", href: "/inventory", badge: null },
+    { icon: ShoppingCart, label: "Satışlar", href: "/sales", badge: null },
+    { icon: TrendingUp, label: "Raporlar", href: "/reports", badge: null },
+    { icon: CreditCard, label: "Kasa", href: "/cashier", badge: null },
+    { icon: Truck, label: "Depo", href: "/suppliers", badge: null },
+    { icon: AlertTriangle, label: "Kritik Stok", href: "/critical-stock", badge: "Acil" },
+    // Admin sayfalar sidebar'dan gizlendi (direct URL erişimi hala korunuyor)
+    // { icon: MessageSquare, label: "Şikayetler", href: "/complaints", badge: "Admin" },
+    // { icon: QrCode, label: "QR Kod Oluşturucu", href: "/qr-generator", badge: "Admin" },
+    // { icon: Users, label: "Kullanıcı Yönetimi", href: "/admin/users", badge: "Admin" },
+    { icon: BarChart3, label: "Analitik", href: "/analytics", badge: null },
+    { icon: Settings, label: "Ayarlar", href: "/settings", badge: null },
   ]
 
-  // Filter menu items based on admin status
-  const menuItems = allMenuItems.filter(item => 
-    !item.adminOnly || (item.adminOnly && isApprovedAdmin)
-  )
+  // Artık tüm menü öğeleri herkes için görünür (admin sayfalar zaten listeden kaldırıldı)
+  const menuItems = allMenuItems
 
   return (
     <div 

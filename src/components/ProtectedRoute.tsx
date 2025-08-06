@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { useAuth } from '@/contexts/AuthContext'
 import { Card, CardContent } from '@/components/ui/card'
@@ -17,6 +17,17 @@ interface ProtectedRouteProps {
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { user, userProfile, isApprovedAdmin, loading } = useAuth()
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
+
+  // Ekstra güvenlik: Kullanıcı session'a sahip ama admin değilse çıkış yaptır
+  useEffect(() => {
+    if (user && userProfile && !isApprovedAdmin) {
+      const checkAndSignOut = async () => {
+        console.log('Non-admin user detected, signing out...')
+        await supabase.auth.signOut()
+      }
+      checkAndSignOut()
+    }
+  }, [user, userProfile, isApprovedAdmin])
 
   // Loading state
   if (loading) {

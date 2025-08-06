@@ -33,7 +33,10 @@ export function UserProfile() {
   const [error, setError] = useState<string | null>(null)
 
   const fetchUserProfile = useCallback(async () => {
-    if (!user) return
+    if (!user) {
+      setUserData(null)
+      return
+    }
 
     setLoading(true)
     setError(null)
@@ -45,6 +48,12 @@ export function UserProfile() {
       })
 
       if (!response.ok) {
+        if (response.status === 401) {
+          // 401 durumunda tekrar deneme yapma
+          setError('Kullanıcı oturumu geçersiz. Lütfen tekrar giriş yapın.')
+          setUserData(null)
+          return
+        }
         throw new Error(`HTTP ${response.status}: ${response.statusText}`)
       }
 
@@ -52,19 +61,35 @@ export function UserProfile() {
       
       if (data.success) {
         setUserData(data.user)
+        setError(null) // Başarılı durumda hatayı temizle
       } else {
         throw new Error(data.error || 'Failed to fetch user data')
       }
     } catch (err) {
+      console.error('UserProfile fetch error:', err)
       setError(err instanceof Error ? err.message : 'An error occurred')
+      setUserData(null)
     } finally {
       setLoading(false)
     }
-  }, [user])
+  }, [user?.id]) // Sadece user.id değiştiğinde yeniden oluştur
 
   useEffect(() => {
-    fetchUserProfile()
-  }, [user, fetchUserProfile])
+    let mounted = true;
+    
+    // Sadece user varsa ve henüz userData yüklenmemişse çağır
+    if (user && !userData && !loading && !error) {
+      const loadData = async () => {
+        if (!mounted) return;
+        await fetchUserProfile();
+      };
+      loadData();
+    }
+    
+    return () => {
+      mounted = false;
+    };
+  }, [user?.id]) // Sadece user ID değiştiğinde çalışır
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString('tr-TR', {

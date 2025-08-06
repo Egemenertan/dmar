@@ -24,7 +24,6 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>
   signUp: (email: string, password: string) => Promise<{ error: AuthError | null }>
   signOut: () => Promise<{ error: AuthError | null }>
-  resetPassword: (email: string) => Promise<{ error: AuthError | null }>
   refreshUserProfile: () => Promise<void>
 }
 
@@ -93,8 +92,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Refresh user profile when auth state changes
         if (session?.user) {
           // Small delay to ensure profile is created by trigger
-          setTimeout(() => {
-            refreshUserProfile()
+          setTimeout(async () => {
+            await refreshUserProfile()
+            
+            // Şifre sıfırlama sonrası güvenlik kontrolü
+            if (event === 'TOKEN_REFRESHED' || event === 'SIGNED_IN') {
+              // Kullanıcının admin ve onaylı olup olmadığını kontrol et
+              const { data: profileData } = await supabase
+                .from('user_profiles')
+                .select('is_admin, is_approved')
+                .eq('id', session.user.id)
+                .single()
+              
+              if (profileData && (!profileData.is_admin || !profileData.is_approved)) {
+                // Admin olmayan kullanıcıyı hemen çıkış yaptır
+                console.log('Non-admin user attempted access, signing out')
+                await supabase.auth.signOut()
+              }
+            }
           }, 500)
         } else {
           setUserProfile(null)
@@ -179,12 +194,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const resetPassword = async (email: string) => {
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/reset-password`,
-    })
-    return { error }
-  }
+
 
   const value = {
     user,
@@ -195,7 +205,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signIn,
     signUp,
     signOut,
-    resetPassword,
     refreshUserProfile,
   }
 

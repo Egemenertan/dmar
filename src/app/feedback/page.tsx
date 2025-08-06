@@ -459,7 +459,7 @@ ${form.message ? `\nMESAJ:\n${form.message}` : ''}
                     onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleInputChange('message', e.target.value)}
                     placeholder="Deneyiminizi, önerilerinizi veya şikayetlerinizi detaylı olarak yazabilirsiniz..."
                     rows={5}
-                    className="rounded-2xl border-gray-300 focus:border-gray-900 focus:ring-gray-900 resize-none"
+                    className="rounded-2xl border-gray-200 focus:border-gray-900 focus:ring-gray-900 resize-none"
                   />
                   <p className="text-xs text-gray-500">
                     İsteğe bağlı olarak ek mesajınızı yazabilirsiniz.

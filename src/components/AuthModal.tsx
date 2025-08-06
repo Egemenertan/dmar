@@ -53,23 +53,17 @@ const signUpSchema = z.object({
   path: ["confirmPassword"],
 })
 
-const resetSchema = z.object({
-  email: z
-    .string()
-    .min(1, "Email gereklidir")
-    .email("Geçerli bir email adresi girin"),
-})
+
 
 type SignInFormData = z.infer<typeof signInSchema>
 type SignUpFormData = z.infer<typeof signUpSchema>
-type ResetFormData = z.infer<typeof resetSchema>
 
 interface AuthModalProps {
   isOpen: boolean
   onClose: () => void
 }
 
-type AuthMode = "signin" | "signup" | "reset"
+type AuthMode = "signin" | "signup"
 
 export function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const [mode, setMode] = useState<AuthMode>("signin")
@@ -77,7 +71,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [message, setMessage] = useState<{ type: "success" | "error", text: string } | null>(null)
   
-  const { signIn, signUp, resetPassword, loading } = useAuth()
+  const { signIn, signUp, loading } = useAuth()
 
   const signInForm = useForm<SignInFormData>({
     resolver: zodResolver(signInSchema),
@@ -96,12 +90,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
     },
   })
 
-  const resetForm = useForm<ResetFormData>({
-    resolver: zodResolver(resetSchema),
-    defaultValues: {
-      email: "",
-    },
-  })
+
 
   const onSignIn = async (data: SignInFormData) => {
     setMessage(null)
@@ -133,25 +122,11 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
     }
   }
 
-  const onReset = async (data: ResetFormData) => {
-    setMessage(null)
-    const { error } = await resetPassword(data.email)
-    
-    if (error) {
-      setMessage({ type: "error", text: error.message })
-    } else {
-      setMessage({ type: "success", text: "Şifre sıfırlama bağlantısı gönderildi." })
-      setTimeout(() => {
-        setMode("signin")
-        setMessage(null)
-      }, 3000)
-    }
-  }
+
 
   const resetAllForms = () => {
     signInForm.reset()
     signUpForm.reset()
-    resetForm.reset()
     setMessage(null)
     setShowPassword(false)
     setShowConfirmPassword(false)
@@ -184,12 +159,10 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
           <DialogTitle className="text-2xl font-semibold">
             {mode === "signin" && "Giriş Yap"}
             {mode === "signup" && "Hesap Oluştur"}
-            {mode === "reset" && "Şifre Sıfırla"}
           </DialogTitle>
           <DialogDescription>
             {mode === "signin" && "Sadece onaylı admin kullanıcılar giriş yapabilir"}
             {mode === "signup" && "Kayıt olduktan sonra admin onayı beklemeniz gerekir"}
-            {mode === "reset" && "Şifrenizi sıfırlamak için email adresinizi girin"}
           </DialogDescription>
         </DialogHeader>
 
@@ -394,63 +367,18 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
           </Form>
         )}
 
-        {/* Reset Password Form */}
-        {mode === "reset" && (
-          <Form {...resetForm}>
-            <form onSubmit={resetForm.handleSubmit(onReset)} className="space-y-4">
-              <FormField
-                control={resetForm.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="flex items-center gap-2">
-                      <Mail className="w-4 h-4" />
-                      Email
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        type="email"
-                        placeholder="ornek@email.com"
-                        disabled={loading}
-                        className="h-11"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
 
-              <Button
-                type="submit"
-                className="w-full h-11"
-                disabled={loading}
-              >
-                {loading ? "Gönderiliyor..." : "Sıfırlama Bağlantısı Gönder"}
-              </Button>
-            </form>
-          </Form>
-        )}
 
         {/* Mode Switch Buttons */}
         <div className="flex flex-col gap-2 pt-4 border-t">
           {mode === "signin" && (
-            <div className="flex flex-col gap-2">
-              <Button
-                variant="ghost"
-                className="h-9"
-                onClick={() => handleModeChange("signup")}
-              >
-                Hesabınız yok mu? <strong className="ml-1">Kayıt olun</strong>
-              </Button>
-              <Button
-                variant="ghost"
-                className="h-9 text-muted-foreground"
-                onClick={() => handleModeChange("reset")}
-              >
-                Şifrenizi mi unuttunuz?
-              </Button>
-            </div>
+            <Button
+              variant="ghost"
+              className="h-9"
+              onClick={() => handleModeChange("signup")}
+            >
+              Hesabınız yok mu? <strong className="ml-1">Kayıt olun</strong>
+            </Button>
           )}
           
           {mode === "signup" && (
@@ -460,16 +388,6 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
               onClick={() => handleModeChange("signin")}
             >
               Zaten hesabınız var mı? <strong className="ml-1">Giriş yapın</strong>
-            </Button>
-          )}
-          
-          {mode === "reset" && (
-            <Button
-              variant="ghost"
-              className="h-9"
-              onClick={() => handleModeChange("signin")}
-            >
-              Giriş sayfasına dön
             </Button>
           )}
         </div>
