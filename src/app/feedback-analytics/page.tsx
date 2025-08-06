@@ -17,10 +17,12 @@ import {
   ThumbsDown,
   Loader2,
   MapPin,
-  Store
+  Store,
+  QrCode
 } from "lucide-react"
 import { STORE_CONFIG, type StoreId } from "@/lib/constants"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import Link from "next/link"
 
 export default function FeedbackAnalyticsPage() {
   const [selectedTab, setSelectedTab] = useState("overview")
@@ -135,7 +137,7 @@ export default function FeedbackAnalyticsPage() {
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Feedback Analitik</h1>
           <p className="text-gray-600 mt-1 text-sm sm:text-base">Müşteri geri bildirimlerini analiz edin ve iyileştirmeler yapın</p>
         </div>
-        <div className="flex gap-2 items-center">
+        <div className="flex gap-3 items-center">
           <div className="flex items-center gap-2">
             <Store className="h-4 w-4 text-black" />
             <Select value={selectedStore} onValueChange={(value: StoreId | 'all') => setSelectedStore(value)}>
@@ -153,7 +155,15 @@ export default function FeedbackAnalyticsPage() {
               </SelectContent>
             </Select>
           </div>
-        
+          
+          {/* QR Generator Button */}
+          <Link href="/qr-generator">
+            <Button className="bg-gray-900 hover:bg-gray-800 text-white rounded-xl px-4 py-2 flex items-center gap-2 text-sm font-medium transition-colors">
+              <QrCode className="h-4 w-4" />
+              <span className="hidden sm:inline">QR Kod Oluştur</span>
+              <span className="sm:hidden">QR</span>
+            </Button>
+          </Link>
         </div>
       </div>
 

@@ -29,8 +29,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     <ProtectedRoute>
       <div className="flex h-screen bg-[#f1f1f1]">
         {/* Desktop Sidebar - Sadece desktop'ta görünür */}
-        <div className="hidden lg:block">
-          <Sidebar />
+        <div className="hidden lg:block h-screen">
+          <Sidebar className="h-full" />
         </div>
         
         {/* Ana İçerik Alanı */}
