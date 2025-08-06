@@ -72,7 +72,7 @@ export function UserProfile() {
     } finally {
       setLoading(false)
     }
-  }, [user?.id]) // Sadece user.id değiştiğinde yeniden oluştur
+  }, [user])
 
   useEffect(() => {
     let mounted = true;
@@ -89,7 +89,7 @@ export function UserProfile() {
     return () => {
       mounted = false;
     };
-  }, [user?.id]) // Sadece user ID değiştiğinde çalışır
+  }, [user, userData, loading, error, fetchUserProfile])
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString('tr-TR', {

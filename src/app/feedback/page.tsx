@@ -7,10 +7,11 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+
+import { Notification } from "@/components/ui/notification"
 import { supabase } from "@/lib/supabase"
 import { BRAND_ASSETS, STORE_CONFIG, type StoreId } from "@/lib/constants"
-import { CheckCircle, Send, AlertCircle, Star, ArrowLeft, ArrowRight, Mail, Phone, MapPin } from "lucide-react"
+import { Send, Star, ArrowLeft, ArrowRight, Mail, Phone, MapPin } from "lucide-react"
 import Image from "next/image"
 
 interface FeedbackForm {
@@ -95,10 +96,19 @@ function FeedbackContent() {
   })
   
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [submitStatus, setSubmitStatus] = useState<{
-    type: 'success' | 'error' | null
-    message: string
-  }>({ type: null, message: '' })
+  
+  // Notification state
+  const [notification, setNotification] = useState<{
+    open: boolean
+    type: 'success' | 'error' | 'warning'
+    title: string
+    description?: string
+  }>({
+    open: false,
+    type: 'success',
+    title: '',
+    description: ''
+  })
   
   // Spam koruması için
   const [lastSubmitTime, setLastSubmitTime] = useState<number>(0)
@@ -126,6 +136,16 @@ function FeedbackContent() {
 
   const handleInputChange = (field: keyof FeedbackForm, value: string | number) => {
     setForm(prev => ({ ...prev, [field]: value }))
+  }
+
+  // Notification gösterme fonksiyonları
+  const showNotification = (type: 'success' | 'error' | 'warning', title: string, description?: string) => {
+    setNotification({
+      open: true,
+      type,
+      title,
+      description
+    })
   }
 
   // Spam kontrolü
@@ -176,22 +196,33 @@ function FeedbackContent() {
     // Spam kontrolü
     const submitCheck = canSubmit()
     if (!submitCheck.canSubmit) {
-      setSubmitStatus({
-        type: 'error',
-        message: submitCheck.reason
-      })
+      // Spam uyarısını notification olarak göster
+      if (submitCount >= MAX_SUBMISSIONS_PER_DAY) {
+        showNotification(
+          'warning',
+          'Günlük Limit Aşıldı',
+          '24 saat içinde maksimum 2 geri bildirim gönderebilirsiniz. Lütfen yarın tekrar deneyin.'
+        )
+      } else {
+        showNotification(
+          'warning',
+          'Lütfen Bekleyin',
+          `${Math.ceil((SUBMIT_COOLDOWN - (Date.now() - lastSubmitTime)) / 1000)} saniye sonra tekrar deneyebilirsiniz.`
+        )
+      }
       return
     }
 
     setIsSubmitting(true)
-    setSubmitStatus({ type: null, message: '' })
 
     try {
       // Email validasyonu (eğer girilmişse)
       if (form.email) {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
         if (!emailRegex.test(form.email)) {
-          throw new Error('Lütfen geçerli bir email adresi girin.')
+          showNotification('error', 'Geçersiz Email', 'Lütfen geçerli bir email adresi girin.')
+          setIsSubmitting(false)
+          return
         }
       }
 
@@ -254,7 +285,9 @@ ${form.message ? `\nMESAJ:\n${form.message}` : ''}
 
       if (error) {
         console.error('Supabase error:', error)
-        throw new Error('Geri bildirim gönderilirken bir hata oluştu. Lütfen tekrar deneyin.')
+        showNotification('error', 'Gönderim Hatası', 'Geri bildirim gönderilirken bir hata oluştu. Lütfen tekrar deneyin.')
+        setIsSubmitting(false)
+        return
       }
 
       // Başarılı gönderim - LocalStorage'a kaydet (store bazında)
@@ -274,10 +307,12 @@ ${form.message ? `\nMESAJ:\n${form.message}` : ''}
       setLastSubmitTime(now)
       setSubmitCount(submissions.length)
 
-      setSubmitStatus({
-        type: 'success',
-        message: 'Geri bildiriminiz başarıyla gönderildi! Değerli görüşleriniz için teşekkür ederiz.'
-      })
+      // Başarı notification'ı göster
+      showNotification(
+        'success', 
+        'Gönderim Başarılı!', 
+        'Geri bildiriminiz başarıyla gönderildi. Değerli görüşleriniz için teşekkür ederiz.'
+      )
 
       // Formu temizle
       setForm({
@@ -299,10 +334,11 @@ ${form.message ? `\nMESAJ:\n${form.message}` : ''}
 
     } catch (error) {
       console.error('Error submitting feedback:', error)
-      setSubmitStatus({
-        type: 'error',
-        message: error instanceof Error ? error.message : 'Bir hata oluştu. Lütfen tekrar deneyin.'
-      })
+      showNotification(
+        'error',
+        'Beklenmedik Hata',
+        error instanceof Error ? error.message : 'Bir hata oluştu. Lütfen tekrar deneyin.'
+      )
     } finally {
       setIsSubmitting(false)
     }
@@ -325,10 +361,10 @@ ${form.message ? `\nMESAJ:\n${form.message}` : ''}
   }
 
   return (
-    <div className="min-h-screen  py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-6 sm:py-12 px-3 sm:px-6 lg:px-8">
       <div className="max-w-2xl mx-auto">
-        <div className="text-center mb-8">
-          <div className="w-20 h-20 mx-auto mb-4  overflow-hidden flex items-center justify-center">
+        <div className="text-center mb-6 sm:mb-8">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4  overflow-hidden flex items-center justify-center">
             <Image
               src={BRAND_ASSETS.logo}
               alt="DMAR Market Logo"
@@ -338,23 +374,23 @@ ${form.message ? `\nMESAJ:\n${form.message}` : ''}
               priority
             />
           </div>
-          <h1 className="text-3xl font-bold text-primary mb-2">
+          <h1 className="text-2xl sm:text-3xl font-bold text-primary mb-2">
             Müşteri Geri Bildirimi
           </h1>
           <div className="flex items-center justify-center gap-2 mb-2">
-            <MapPin className="h-5 w-5 text-gray-500" />
-            <span className="text-lg font-medium text-gray-700">{currentStore.fullName}</span>
+            <MapPin className="h-4 w-4 sm:h-5 sm:w-5 text-gray-500" />
+            <span className="text-base sm:text-lg font-medium text-gray-700">{currentStore.fullName}</span>
           </div>
-          <p className="text-lg text-gray-600">
+          <p className="text-sm sm:text-lg text-gray-600">
             {currentStore.location} şubemizin hizmetlerini değerlendirin
           </p>
         </div>
 
         {/* Progress Bar */}
-        <div className="mb-8">
+        <div className="mb-6 sm:mb-8">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-gray-700">Adım {currentStep} / 2</span>
-            <span className="text-sm text-gray-500">{Math.round((currentStep / 2) * 100)}% Tamamlandı</span>
+            <span className="text-xs sm:text-sm font-medium text-gray-700">Adım {currentStep} / 2</span>
+            <span className="text-xs sm:text-sm text-gray-500">{Math.round((currentStep / 2) * 100)}% Tamamlandı</span>
           </div>
           <div className="w-full bg-gray-200 rounded-2xl h-2">
             <div 
@@ -364,35 +400,27 @@ ${form.message ? `\nMESAJ:\n${form.message}` : ''}
           </div>
         </div>
 
-        {submitStatus.type && (
-          <Alert 
-            className={`mb-6 rounded-2xl ${
-              submitStatus.type === 'success' 
-                ? 'border-green-200 bg-green-50 text-green-800' 
-                : 'border-red-200 bg-red-50 text-red-800'
-            }`}
-          >
-            {submitStatus.type === 'success' ? (
-              <CheckCircle className="h-4 w-4 text-green-600" />
-            ) : (
-              <AlertCircle className="h-4 w-4 text-red-600" />
-            )}
-            <AlertDescription className="ml-2">
-              {submitStatus.message}
-            </AlertDescription>
-          </Alert>
-        )}
+        {/* Modern Notification */}
+        <Notification
+          open={notification.open}
+          onOpenChange={(open) => setNotification(prev => ({ ...prev, open }))}
+          type={notification.type}
+          title={notification.title}
+          description={notification.description}
+          autoClose={true}
+          duration={6000}
+        />
 
         <Card className="shadow-lg border-0 rounded-2xl">
-          <CardHeader className="bg-white rounded-t-2xl border-b">
-            <CardTitle className="text-xl font-semibold text-gray-900">
+          <CardHeader className="bg-white rounded-t-2xl border-b p-4 sm:p-6">
+            <CardTitle className="text-lg sm:text-xl font-semibold text-gray-900">
               {getStepTitle()}
             </CardTitle>
-            <CardDescription className="text-gray-600">
+            <CardDescription className="text-sm sm:text-base text-gray-600">
               {getStepDescription()}
             </CardDescription>
           </CardHeader>
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             {/* Adım 1: Market Hizmetleri Değerlendirmesi */}
             {currentStep === 1 && (
               <div className="space-y-6">
@@ -437,10 +465,10 @@ ${form.message ? `\nMESAJ:\n${form.message}` : ''}
                   <Button
                     onClick={handleNext}
                     disabled={!canProceedFromStep1()}
-                    className="bg-gray-900 hover:bg-gray-800 text-white rounded-2xl px-6 py-2 flex items-center gap-2"
+                    className="bg-gray-900 hover:bg-gray-800 text-white rounded-2xl px-4 sm:px-6 py-2 flex items-center gap-2 text-sm sm:text-base"
                   >
                     İleri
-                    <ArrowRight className="h-8 w-8" />
+                    <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />
                   </Button>
                 </div>
               </div>
@@ -459,24 +487,15 @@ ${form.message ? `\nMESAJ:\n${form.message}` : ''}
                     onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleInputChange('message', e.target.value)}
                     placeholder="Deneyiminizi, önerilerinizi veya şikayetlerinizi detaylı olarak yazabilirsiniz..."
                     rows={5}
-                    className="rounded-2xl border-gray-200 focus:border-gray-900 focus:ring-gray-900 resize-none"
+                    className="rounded-2xl border-2 border-gray-300 focus:border-gray-900 focus:ring-gray-900 resize-none text-base"
+                    style={{ fontSize: '16px' }}
                   />
                   <p className="text-xs text-gray-500">
                     İsteğe bağlı olarak ek mesajınızı yazabilirsiniz.
                   </p>
                 </div>
 
-                {/* Spam uyarısı */}
-                {!canSubmit().canSubmit && (
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-4">
-                    <div className="flex items-center">
-                      <AlertCircle className="h-5 w-5 text-yellow-600 mr-2" />
-                      <p className="text-sm text-yellow-800">
-                        {canSubmit().reason}
-                      </p>
-                    </div>
-                  </div>
-                )}
+
 
                 {/* İletişim Bilgileri */}
                 <div className="border-t pt-6">
@@ -496,7 +515,8 @@ ${form.message ? `\nMESAJ:\n${form.message}` : ''}
                           value={form.email}
                           onChange={(e) => handleInputChange('email', e.target.value)}
                           placeholder="ornek@email.com"
-                          className="pl-10 rounded-2xl border-gray-300 focus:border-gray-900 focus:ring-gray-900"
+                          className="pl-10 rounded-2xl border-2 border-gray-300 focus:border-gray-900 focus:ring-gray-900 text-base"
+                          style={{ fontSize: '16px' }}
                         />
                       </div>
                       <p className="text-xs text-gray-500">
@@ -516,7 +536,8 @@ ${form.message ? `\nMESAJ:\n${form.message}` : ''}
                           value={form.phone}
                           onChange={(e) => handleInputChange('phone', e.target.value)}
                           placeholder="0555 123 45 67"
-                          className="pl-10 rounded-2xl border-gray-300 focus:border-gray-900 focus:ring-gray-900"
+                          className="pl-10 rounded-2xl border-2 border-gray-300 focus:border-gray-900 focus:ring-gray-900 text-base"
+                          style={{ fontSize: '16px' }}
                         />
                       </div>
                       <p className="text-xs text-gray-500">
@@ -528,11 +549,11 @@ ${form.message ? `\nMESAJ:\n${form.message}` : ''}
 
 
 
-                <div className="flex justify-between pt-4">
+                <div className="flex flex-col sm:flex-row justify-between gap-3 pt-4">
                   <Button
                     onClick={handlePrevious}
                     variant="outline"
-                    className="rounded-2xl px-6 py-2 flex items-center gap-2 border-gray-300 text-gray-700 hover:bg-gray-50"
+                    className="rounded-2xl px-4 sm:px-6 py-2 flex items-center gap-2 border-gray-300 text-gray-700 hover:bg-gray-50 text-sm sm:text-base order-2 sm:order-1"
                   >
                     <ArrowLeft className="h-4 w-4" />
                     Geri
@@ -540,13 +561,14 @@ ${form.message ? `\nMESAJ:\n${form.message}` : ''}
                   
                   <Button
                     onClick={handleSubmit}
-                    disabled={isSubmitting || !canSubmit().canSubmit}
-                    className="bg-gray-900 hover:bg-gray-800 text-white rounded-2xl px-6 py-2 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={isSubmitting}
+                    className="bg-gray-900 hover:bg-gray-800 text-white rounded-2xl px-4 sm:px-6 py-2 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base order-1 sm:order-2"
                   >
                     {isSubmitting ? (
                       <>
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Gönderiliyor...
+                        <span className="hidden sm:inline">Gönderiliyor...</span>
+                        <span className="sm:hidden">Gönderiliyor</span>
                       </>
                     ) : (
                       <>
@@ -561,11 +583,11 @@ ${form.message ? `\nMESAJ:\n${form.message}` : ''}
           </CardContent>
         </Card>
 
-        <div className="mt-8 text-center">
-          <p className="text-sm text-gray-500">
+        <div className="mt-6 sm:mt-8 text-center">
+          <p className="text-xs sm:text-sm text-gray-500 leading-relaxed">
             Geri bildiriminiz gizli tutulacak ve değerlendirilerek size dönüş yapılacaktır.
-            <br />
-            {currentStore.fullName} - Müşteri memnuniyeti önceliğimizdir.
+            <br className="hidden sm:block" />
+            <span className="block sm:inline mt-1 sm:mt-0">{currentStore.fullName} - Müşteri memnuniyeti önceliğimizdir.</span>
           </p>
         </div>
       </div>

@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { usePathname } from "next/navigation"
 import { Sidebar } from "@/components/Sidebar"
 import { Header } from "@/components/Header"
@@ -12,6 +13,7 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname()
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false)
   
   // Feedback sayfası için özel layout (giriş gerektirmez)
   if (pathname === '/feedback') {
@@ -26,16 +28,20 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
     <ProtectedRoute>
       <div className="flex h-screen bg-[#f1f1f1]">
-        {/* Sidebar */}
-        <Sidebar />
+        {/* Desktop Sidebar - Sadece desktop'ta görünür */}
+        <div className="hidden lg:block">
+          <Sidebar />
+        </div>
         
         {/* Ana İçerik Alanı */}
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Header */}
-          <Header />
+          <Header 
+            onMobileSidebarToggle={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+          />
           
           {/* Ana İçerik */}
-          <main className="flex-1 overflow-x-hidden overflow-y-auto p-4">
+          <main className="flex-1 overflow-x-hidden overflow-y-auto p-2 sm:p-4">
             <ErrorBanner />
             {children}
           </main>

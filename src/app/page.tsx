@@ -2,9 +2,8 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { DatabaseStatus } from "@/components/DatabaseStatus"
-import { UserProfile } from "@/components/UserProfile"
-import { useAuth } from "@/contexts/AuthContext"
+
+
 import { 
   Package, 
   ShoppingCart, 
@@ -16,7 +15,6 @@ import {
 } from "lucide-react"
 
 export default function Home() {
-  const { user } = useAuth()
   
   return (
     <div className="space-y-6">
@@ -223,11 +221,7 @@ export default function Home() {
             </CardContent>
           </Card>
 
-          {/* Veritabanı Durumu */}
-          <DatabaseStatus />
-
-          {/* Kullanıcı Profili - Middleware Test */}
-          {user && <UserProfile />}
+         
         </div>
       </div>
     </div>

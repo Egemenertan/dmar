@@ -1,10 +1,10 @@
 "use client"
 
 import { useState } from "react"
-import { Bell, Search, User, LogOut, Shield, MessageSquare } from "lucide-react"
-import Link from "next/link"
+import { Bell, User, LogOut, Shield, Menu } from "lucide-react"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -15,12 +15,20 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { useAuth } from "@/contexts/AuthContext"
 import { AuthModal } from "@/components/AuthModal"
+import { BRAND_ASSETS } from "@/lib/constants"
+import { Sidebar } from "@/components/Sidebar"
 
-export function Header() {
+interface HeaderProps {
+  onMobileSidebarToggle?: () => void
+}
+
+export function Header({ onMobileSidebarToggle }: HeaderProps) {
   const { user, signOut, loading } = useAuth()
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   const handleSignOut = async () => {
     await signOut()
@@ -32,49 +40,72 @@ export function Header() {
 
   return (
     <>
-      <header className="flex items-center justify-between px-6 py-4 bg-gray-50 rounded-3xl m-1 shadow-sm">
-        {/* Sol Kısım - Başlık */}
-        <div className="flex items-center gap-4">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-foreground">Dmar Yönetim</h1>
-            <p className="text-sm text-muted-foreground">
-              {user ? `Hoş geldiniz, ${user.email?.split('@')[0]}!` : "DMAR Market'e hoş geldiniz"}
-            </p>
+      <header className="flex items-center justify-between px-3 sm:px-6 py-3 sm:py-4 bg-gray-50 rounded-3xl m-1 shadow-sm">
+        {/* Sol Kısım - Mobile Hamburger + Logo + Başlık */}
+        <div className="flex items-center gap-2 sm:gap-4">
+          {/* Mobile Hamburger Menu - Sadece mobilde görünür */}
+          <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+            <SheetTrigger asChild>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="lg:hidden h-8 w-8"
+                onClick={() => {
+                  setIsMobileMenuOpen(true)
+                  onMobileSidebarToggle?.()
+                }}
+              >
+                <Menu className="h-5 w-5" />
+                <span className="sr-only">Menüyü aç</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="p-0 w-64">
+              <Sidebar 
+                className="border-0 m-0 rounded-none h-full" 
+                onItemClick={() => setIsMobileMenuOpen(false)}
+                isMobile={true}
+              />
+            </SheetContent>
+          </Sheet>
+
+          {/* Logo - Mobilde gösteriliyor */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg overflow-hidden flex items-center justify-center">
+              <Image
+                src={BRAND_ASSETS.logo}
+                alt="DMAR Market Logo"
+                width={40}
+                height={40}
+                className="w-full h-full object-contain"
+                priority
+              />
+            </div>
+            <div className="hidden sm:block">
+              <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-foreground">Dmar Yönetim</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                {user ? `Hoş geldiniz, ${user.email?.split('@')[0]}!` : "DMAR Market'e hoş geldiniz"}
+              </p>
+            </div>
+            {/* Mobilde sadece başlık */}
+            <div className="sm:hidden">
+              <h1 className="text-lg font-semibold tracking-tight text-foreground">Dmar</h1>
+            </div>
           </div>
         </div>
 
-        {/* Orta Kısım - Arama (sadece giriş yapmış kullanıcılar için) */}
-        {user && (
-          <div className="flex-1 max-w-md mx-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Ürün, kategori veya tedarikçi ara..."
-                className="pl-10 w-full"
-              />
-            </div>
-          </div>
-        )}
+        {/* Orta Kısım - Arama (sadece desktop'ta ve giriş yapmış kullanıcılar için) */}
+      
 
         {/* Sağ Kısım - Feedback, Auth ve Profil */}
-        <div className="flex items-center gap-4">
-          {/* Feedback Butonu - Herkese açık */}
-          <Link href="/feedback" target="_blank">
-            <Button 
-              variant="outline" 
-              size="sm"
-              className="flex items-center gap-2 bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 hover:border-blue-300"
-            >
-              <MessageSquare className="w-4 h-4" />
-              Geri Bildirim
-            </Button>
-          </Link>
+        <div className="flex items-center gap-2 sm:gap-4">
+          {/* Feedback Butonu - Responsive */}
+        
 
           {user ? (
             // Giriş yapmış kullanıcı için
             <>
-              {/* Bildirimler */}
-              <Button variant="ghost" size="icon" className="relative">
+              {/* Bildirimler - Sadece desktop'ta görünür */}
+              <Button variant="ghost" size="icon" className="relative hidden sm:flex">
                 <Bell className="h-4 w-4" />
                 <Badge 
                   variant="destructive" 
@@ -134,10 +165,11 @@ export function Header() {
                 variant="outline"
                 size="sm"
                 onClick={() => setIsAuthModalOpen(true)}
-                className="flex items-center gap-2"
+                className="flex items-center gap-1 sm:gap-2"
               >
-                <Shield className="w-4 h-4" />
-                Giriş Yap
+                <Shield className="w-3 h-3 sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline">Giriş Yap</span>
+                <span className="sm:hidden">Giriş</span>
               </Button>
             </div>
           )}

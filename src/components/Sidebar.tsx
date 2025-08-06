@@ -26,9 +26,11 @@ import { usePathname } from "next/navigation"
 
 interface SidebarProps {
   className?: string
+  onItemClick?: () => void // Mobile'da menü kapanması için
+  isMobile?: boolean // Mobile'da toggle butonunu gizlemek için
 }
 
-export function Sidebar({ className }: SidebarProps) {
+export function Sidebar({ className, onItemClick, isMobile }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false)
   const pathname = usePathname()
 
@@ -61,7 +63,10 @@ export function Sidebar({ className }: SidebarProps) {
       )}
     >
       {/* Logo ve Toggle */}
-      <div className="flex items-center justify-between p-4">
+      <div className={cn(
+        "flex items-center p-4",
+        isMobile ? "justify-start" : "justify-between"
+      )}>
         {!collapsed && (
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-lg overflow-hidden flex items-center justify-center">
@@ -81,17 +86,20 @@ export function Sidebar({ className }: SidebarProps) {
           </div>
         )}
         
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setCollapsed(!collapsed)}
-          className={cn(
-            "h-8 w-8 text-gray-600 hover:bg-gray-100",
-            collapsed && "mx-auto"
-          )}
-        >
-          {collapsed ? <Menu className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-        </Button>
+        {/* Toggle butonu sadece desktop'ta görünür, mobile'da gizli */}
+        {!isMobile && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setCollapsed(!collapsed)}
+            className={cn(
+              "h-8 w-8 text-gray-600 hover:bg-gray-100",
+              collapsed && "mx-auto"
+            )}
+          >
+            {collapsed ? <Menu className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+          </Button>
+        )}
       </div>
 
       {/* Navigation Menu */}
@@ -100,7 +108,7 @@ export function Sidebar({ className }: SidebarProps) {
           {menuItems.map((item) => {
             const isActive = pathname === item.href
             return (
-              <Link key={item.href} href={item.href}>
+              <Link key={item.href} href={item.href} onClick={onItemClick}>
                 <Button
                   variant="ghost"
                   className={cn(

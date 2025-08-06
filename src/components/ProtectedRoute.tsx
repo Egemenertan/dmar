@@ -149,7 +149,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     return (
       <>
         <div className="min-h-screen flex items-center justify-center bg-[#f1f1f1] p-4">
-          <Card className="w-full max-w-md border-gray-200 bg-gray-50 rounded-2xl shadow-sm">
+          <Card className="w-full bg-[#f1f1f1] max-w-md ">
             <CardContent className="pt-8">
               <div className="flex flex-col items-center text-center space-y-6">
                 {/* Logo */}
@@ -172,7 +172,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
                 
                 <div className="w-full">
                   <Button
-                    className="w-full h-12 text-base font-medium bg-gray-800 hover:bg-gray-700 text-white rounded-xl"
+                    className="w-full h-12 rounded-2xl text-base font-medium bg-gray-800 hover:bg-gray-700 text-white rounded-xl"
                     onClick={() => setIsAuthModalOpen(true)}
                   >
                     Giriş Yap

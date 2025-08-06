@@ -70,15 +70,7 @@ function extractRatingFromMessage(message: string): number | null {
   return null
 }
 
-// Kategori çıkarma
-function extractCategoryFromSubject(subject: string): string {
-  if (subject.toLowerCase().includes('değerlendirme')) return 'Genel Değerlendirme'
-  if (subject.toLowerCase().includes('ürün')) return 'Ürün Kalitesi'
-  if (subject.toLowerCase().includes('teslimat')) return 'Teslimat'
-  if (subject.toLowerCase().includes('hizmet')) return 'Müşteri Hizmetleri'
-  if (subject.toLowerCase().includes('fiyat')) return 'Fiyat'
-  return 'Diğer'
-}
+
 
 // Anahtar kelime çıkarma
 function extractKeywords(message: string): string[] {
@@ -108,161 +100,162 @@ function extractKeywords(message: string): string[] {
   return keywords
 }
 
-export function useComplaints() {
+// Stats hesaplama fonksiyonunu ayrı bir yardımcı fonksiyon yap
+function calculateStatsFromData(complaints: Complaint[], setStats: (stats: FeedbackStats) => void) {
+  if (!complaints || complaints.length === 0) {
+    setStats({
+      totalFeedbacks: 0,
+      averageRating: 0,
+      responseRate: 0,
+      satisfaction: 0,
+      ratingDistribution: {},
+      categoryStats: [],
+      sentimentStats: { positive: 0, neutral: 0, negative: 0 },
+      keywordFrequency: []
+    })
+    return
+  }
+
+  // Rating'leri çıkar
+  const ratings: number[] = []
+  const ratingDistribution: { [key: number]: number } = {}
+  const categoryMap: { [key: string]: { positive: number, negative: number, total: number } } = {}
+  const keywordMap: { [key: string]: number } = {}
+  
+  let resolvedCount = 0
+  let positiveCount = 0
+  let negativeCount = 0
+  let neutralCount = 0
+
+  complaints.forEach((complaint) => {
+    // Rating çıkar
+    const rating = extractRatingFromMessage(complaint.subject + ' ' + complaint.message)
+    if (rating) {
+      ratings.push(rating)
+      const roundedRating = Math.floor(rating)
+      ratingDistribution[roundedRating] = (ratingDistribution[roundedRating] || 0) + 1
+      
+      // Sentiment analizi
+      if (rating >= 4) positiveCount++
+      else if (rating <= 2) negativeCount++
+      else neutralCount++
+    }
+
+    // Çözülme durumu
+    if (complaint.status === 'resolved' || complaint.status === 'closed') {
+      resolvedCount++
+    }
+
+    // Kategori analizi
+    const category = complaint.complaint_type
+    if (!categoryMap[category]) {
+      categoryMap[category] = { positive: 0, negative: 0, total: 0 }
+    }
+    categoryMap[category].total++
+    if (rating && rating >= 4) categoryMap[category].positive++
+    if (rating && rating <= 2) categoryMap[category].negative++
+
+    // Anahtar kelimeler
+    const keywords = extractKeywords(complaint.message)
+    keywords.forEach(keyword => {
+      keywordMap[keyword] = (keywordMap[keyword] || 0) + 1
+    })
+  })
+
+  const averageRating = ratings.length > 0 ? ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length : 0
+  const responseRate = complaints.length > 0 ? Math.round((resolvedCount / complaints.length) * 100) : 0
+  const satisfaction = ratings.length > 0 ? Math.round((positiveCount / ratings.length) * 100) : 0
+
+  // Kategori istatistiklerini düzenle
+  const categoryStats = Object.entries(categoryMap).map(([name, stats]) => ({
+    name,
+    positive: stats.total > 0 ? Math.round((stats.positive / stats.total) * 100) : 0,
+    negative: stats.total > 0 ? Math.round((stats.negative / stats.total) * 100) : 0,
+    total: stats.total
+  }))
+
+  // Anahtar kelime sıklığı
+  const keywordFrequency = Object.entries(keywordMap)
+    .map(([keyword, count]) => ({ keyword, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 10)
+
+  // Sentiment istatistikleri
+  const totalSentiment = positiveCount + neutralCount + negativeCount
+  const sentimentStats = {
+    positive: totalSentiment > 0 ? Math.round((positiveCount / totalSentiment) * 100) : 0,
+    neutral: totalSentiment > 0 ? Math.round((neutralCount / totalSentiment) * 100) : 0,
+    negative: totalSentiment > 0 ? Math.round((negativeCount / totalSentiment) * 100) : 0
+  }
+
+  setStats({
+    totalFeedbacks: complaints.length,
+    averageRating: Math.round(averageRating * 10) / 10,
+    responseRate,
+    satisfaction,
+    ratingDistribution,
+    categoryStats,
+    sentimentStats,
+    keywordFrequency
+  })
+}
+
+// Birleştirilmiş hook - hem complaints hem de stats'ı tek seferde döner
+export function useComplaintsWithStats() {
   const [complaints, setComplaints] = useState<Complaint[]>([])
+  const [stats, setStats] = useState<FeedbackStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    async function fetchComplaints() {
+    async function fetchData() {
       try {
-        const { data, error } = await supabase
+        setLoading(true)
+        setError(null)
+        
+        // Timeout ekleyelim - 10 saniye
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('İstek zaman aşımına uğradı')), 10000)
+        })
+        
+        const dataPromise = supabase
           .from('complaints')
           .select('*')
           .order('created_at', { ascending: false })
         
+        const result = await Promise.race([dataPromise, timeoutPromise])
+        const { data, error } = result as { data: Complaint[] | null; error: Error | null }
+        
         if (error) throw error
-        setComplaints(data || [])
+        
+        const complaintsData = data || []
+        setComplaints(complaintsData)
+        
+        // Stats'ı da aynı veri ile hesapla
+        calculateStatsFromData(complaintsData, setStats)
+        
       } catch (err) {
+        console.error('Complaints fetch error:', err)
         setError(err instanceof Error ? err.message : 'Bir hata oluştu')
       } finally {
         setLoading(false)
       }
     }
 
-    fetchComplaints()
+    fetchData()
   }, [])
 
+  return { complaints, stats, loading, error }
+}
+
+// Geriye uyumluluk için eski hook'u koruyalım
+export function useComplaints() {
+  const { complaints, loading, error } = useComplaintsWithStats()
   return { complaints, loading, error }
 }
 
+// Geriye uyumluluk için - artık useComplaintsWithStats'ı kullanıyor
 export function useFeedbackStats() {
-  const [stats, setStats] = useState<FeedbackStats | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    async function calculateStats() {
-      try {
-        const { data: complaints, error } = await supabase
-          .from('complaints')
-          .select('*')
-          .order('created_at', { ascending: false })
-        
-        if (error) throw error
-        
-        if (!complaints || complaints.length === 0) {
-          setStats({
-            totalFeedbacks: 0,
-            averageRating: 0,
-            responseRate: 0,
-            satisfaction: 0,
-            ratingDistribution: {},
-            categoryStats: [],
-            sentimentStats: { positive: 0, neutral: 0, negative: 0 },
-            keywordFrequency: []
-          })
-          return
-        }
-
-        // Rating'leri çıkar
-        const ratings: number[] = []
-        const ratingDistribution: { [key: number]: number } = {}
-        const categoryMap: { [key: string]: { positive: number, negative: number, total: number } } = {}
-        const keywordMap: { [key: string]: number } = {}
-        
-        let resolvedCount = 0
-        let positiveCount = 0
-        let negativeCount = 0
-        let neutralCount = 0
-
-        complaints.forEach((complaint: Record<string, unknown>) => {
-          const rating = extractRatingFromMessage(String(complaint.subject) + ' ' + String(complaint.message))
-          
-          if (rating !== null) {
-            ratings.push(rating)
-            ratingDistribution[Math.floor(rating)] = (ratingDistribution[Math.floor(rating)] || 0) + 1
-          }
-
-          // Kategori istatistikleri
-          const category = extractCategoryFromSubject(String(complaint.subject))
-          if (!categoryMap[category]) {
-            categoryMap[category] = { positive: 0, negative: 0, total: 0 }
-          }
-          categoryMap[category].total++
-          
-          // Sentiment analizi (basit)
-          if (rating !== null) {
-            if (rating >= 4) {
-              categoryMap[category].positive++
-              positiveCount++
-            } else if (rating <= 2) {
-              categoryMap[category].negative++
-              negativeCount++
-            } else {
-              neutralCount++
-            }
-          }
-
-          // Anahtar kelimeler
-          const keywords = extractKeywords(String(complaint.message))
-          keywords.forEach(keyword => {
-            keywordMap[keyword] = (keywordMap[keyword] || 0) + 1
-          })
-
-          // Çözülmüş sayısı
-          if (complaint.status === 'resolved' || complaint.status === 'closed') {
-            resolvedCount++
-          }
-        })
-
-        // İstatistikleri hesapla
-        const averageRating = ratings.length > 0 ? ratings.reduce((a, b) => a + b, 0) / ratings.length : 0
-        const responseRate = complaints.length > 0 ? Math.round((resolvedCount / complaints.length) * 100) : 0
-        const satisfaction = ratings.length > 0 ? Math.round((positiveCount / ratings.length) * 100) : 0
-
-        // Kategori istatistiklerini düzenle
-        const categoryStats = Object.entries(categoryMap).map(([name, stats]) => ({
-          name,
-          positive: stats.total > 0 ? Math.round((stats.positive / stats.total) * 100) : 0,
-          negative: stats.total > 0 ? Math.round((stats.negative / stats.total) * 100) : 0,
-          total: stats.total
-        }))
-
-        // Anahtar kelime sıklığı
-        const keywordFrequency = Object.entries(keywordMap)
-          .map(([keyword, count]) => ({ keyword, count }))
-          .sort((a, b) => b.count - a.count)
-          .slice(0, 10)
-
-        // Sentiment istatistikleri
-        const totalSentiment = positiveCount + neutralCount + negativeCount
-        const sentimentStats = {
-          positive: totalSentiment > 0 ? Math.round((positiveCount / totalSentiment) * 100) : 0,
-          neutral: totalSentiment > 0 ? Math.round((neutralCount / totalSentiment) * 100) : 0,
-          negative: totalSentiment > 0 ? Math.round((negativeCount / totalSentiment) * 100) : 0
-        }
-
-        setStats({
-          totalFeedbacks: complaints.length,
-          averageRating: Math.round(averageRating * 10) / 10,
-          responseRate,
-          satisfaction,
-          ratingDistribution,
-          categoryStats,
-          sentimentStats,
-          keywordFrequency
-        })
-
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'İstatistik hesaplama hatası')
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    calculateStats()
-  }, [])
-
+  const { stats, loading, error } = useComplaintsWithStats()
   return { stats, loading, error }
 }

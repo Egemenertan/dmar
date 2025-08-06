@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { useComplaints, useFeedbackStats } from "@/hooks/useComplaints"
+import { useComplaintsWithStats } from "@/hooks/useComplaints"
 import { FeedbackMessage } from "@/components/FeedbackMessage"
 import { 
   BarChart3, 
@@ -25,11 +25,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 export default function FeedbackAnalyticsPage() {
   const [selectedTab, setSelectedTab] = useState("overview")
   const [selectedStore, setSelectedStore] = useState<StoreId | 'all'>('all')
-  const { complaints, loading: complaintsLoading, error: complaintsError } = useComplaints()
-  const { stats, loading: statsLoading, error: statsError } = useFeedbackStats()
-
-  const loading = complaintsLoading || statsLoading
-  const error = complaintsError || statsError
+  const { complaints, stats, loading, error } = useComplaintsWithStats()
 
   // Rating extraction fonksiyonu - en üstte tanımlayalım
   const extractRatingFromMessage = (subject: string, message: string): number | null => {
@@ -79,41 +75,19 @@ export default function FeedbackAnalyticsPage() {
 
   const currentStats = getStoreStats(selectedStore)
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "resolved":
-      case "closed":
-        return <Badge variant="default" className="bg-green-100 text-green-800">Çözüldü</Badge>
-      case "in_progress":
-        return <Badge variant="secondary">İşlemde</Badge>
-      case "pending":
-        return <Badge variant="outline">Beklemede</Badge>
-      default:
-        return <Badge variant="outline">{status}</Badge>
-    }
-  }
 
-  const getPriorityBadge = (priority: string) => {
-    switch (priority) {
-      case "urgent":
-        return <Badge variant="destructive">Acil</Badge>
-      case "high":
-        return <Badge variant="destructive" className="bg-orange-100 text-orange-800">Yüksek</Badge>
-      case "medium":
-        return <Badge variant="secondary">Orta</Badge>
-      case "low":
-        return <Badge variant="outline">Düşük</Badge>
-      default:
-        return <Badge variant="outline">{priority}</Badge>
-    }
-  }
 
   if (loading) {
     return (
       <div className="p-6 flex items-center justify-center min-h-[400px]">
-        <div className="flex items-center gap-2">
-          <Loader2 className="h-6 w-6 animate-spin" />
-          <span>Veriler yükleniyor...</span>
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <div className="text-center">
+            <p className="text-lg font-medium">Veriler yükleniyor...</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              Feedback verileri ve istatistikler hazırlanıyor
+            </p>
+          </div>
         </div>
       </div>
     )
@@ -122,9 +96,23 @@ export default function FeedbackAnalyticsPage() {
   if (error) {
     return (
       <div className="p-6 flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <p className="text-red-600 mb-2">Veri yükleme hatası:</p>
-          <p className="text-gray-600">{error}</p>
+        <div className="text-center max-w-md">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+            <div className="text-red-600 mb-4">
+              <svg className="h-12 w-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-red-900 mb-2">Veri Yükleme Hatası</h3>
+            <p className="text-red-700 mb-4">{error}</p>
+            <Button 
+              onClick={() => window.location.reload()} 
+              variant="outline" 
+              className="border-red-300 text-red-700 hover:bg-red-50"
+            >
+              Sayfayı Yenile
+            </Button>
+          </div>
         </div>
       </div>
     )
@@ -140,25 +128,26 @@ export default function FeedbackAnalyticsPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Feedback Analitik</h1>
-          <p className="text-gray-600 mt-1">Müşteri geri bildirimlerini analiz edin ve iyileştirmeler yapın</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Feedback Analitik</h1>
+          <p className="text-gray-600 mt-1 text-sm sm:text-base">Müşteri geri bildirimlerini analiz edin ve iyileştirmeler yapın</p>
         </div>
         <div className="flex gap-2 items-center">
           <div className="flex items-center gap-2">
             <Store className="h-4 w-4 text-black" />
             <Select value={selectedStore} onValueChange={(value: StoreId | 'all') => setSelectedStore(value)}>
-              <SelectTrigger className="w-[180px] border-1 rounded-3xl border-primary text-primary hover:border-primary focus:border-primary focus:ring-primary">
+              <SelectTrigger className="w-[140px] sm:w-[180px] border-1 rounded-3xl border-primary text-primary hover:border-primary focus:border-primary focus:ring-primary">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Tüm Şubeler</SelectItem>
                 {Object.values(STORE_CONFIG).map((store) => (
                   <SelectItem key={store.id} value={store.id}>
-                    {store.name}
+                    <span className="block sm:hidden">{store.name}</span>
+                    <span className="hidden sm:block">{store.name}</span>
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -169,7 +158,7 @@ export default function FeedbackAnalyticsPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Toplam Feedback</CardTitle>
@@ -226,21 +215,24 @@ export default function FeedbackAnalyticsPage() {
         <TabsList className="grid w-full grid-cols-3 bg-transparent border-b border-gray-200 p-0 h-auto rounded-none">
           <TabsTrigger 
             value="overview"
-            className="bg-transparent border-0 rounded-none px-6 py-3 font-medium text-gray-600 hover:text-gray-900 data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none"
+            className="bg-transparent border-0 rounded-none px-3 sm:px-6 py-3 font-medium text-gray-600 hover:text-gray-900 data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none text-xs sm:text-sm"
           >
-            Genel Bakış
+            <span className="hidden sm:inline">Genel Bakış</span>
+            <span className="sm:hidden">Genel</span>
           </TabsTrigger>
           <TabsTrigger 
             value="feedbacks"
-            className="bg-transparent border-0 rounded-none px-6 py-3 font-medium text-gray-600 hover:text-gray-900 data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none"
+            className="bg-transparent border-0 rounded-none px-3 sm:px-6 py-3 font-medium text-gray-600 hover:text-gray-900 data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none text-xs sm:text-sm"
           >
-            Geri Bildirimler
+            <span className="hidden sm:inline">Geri Bildirimler</span>
+            <span className="sm:hidden">Feedback</span>
           </TabsTrigger>
           <TabsTrigger 
             value="analytics"
-            className="bg-transparent border-0 rounded-none px-6 py-3 font-medium text-gray-600 hover:text-gray-900 data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none"
+            className="bg-transparent border-0 rounded-none px-3 sm:px-6 py-3 font-medium text-gray-600 hover:text-gray-900 data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none text-xs sm:text-sm"
           >
-            Detaylı Analitik
+            <span className="hidden sm:inline">Detaylı Analitik</span>
+            <span className="sm:hidden">Analitik</span>
           </TabsTrigger>
         </TabsList>
 
@@ -432,10 +424,7 @@ export default function FeedbackAnalyticsPage() {
                               )}
                             </div>
                           </div>
-                          <div className="flex gap-2">
-                            {getStatusBadge(complaint.status)}
-                            {getPriorityBadge(complaint.priority)}
-                          </div>
+                         
                         </div>
                         <div>
                           <FeedbackMessage 
