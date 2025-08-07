@@ -26,7 +26,7 @@ interface ParsedFeedback {
 }
 
 export function FeedbackMessage({ subject, message, email, phone, customerName }: FeedbackMessageProps) {
-  const [isExpanded, setIsExpanded] = useState(false)
+  const [isExpanded, setIsExpanded] = useState(true)
 
   const parseFeedback = (text: string): ParsedFeedback => {
     const result: ParsedFeedback = {
@@ -130,13 +130,13 @@ export function FeedbackMessage({ subject, message, email, phone, customerName }
       </div>
 
       {/* Detaylar - Sadece açıldığında görünür */}
-      <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isExpanded ? 'max-h-[600px] opacity-100' : 'max-h-0 opacity-0'}`}>
+      <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isExpanded ? 'max-h-[800px] opacity-100' : 'max-h-0 opacity-0'}`}>
         <div className="space-y-3 pl-4 border-l-2 border-gray-200 pt-3">
           {/* Müşteri İletişim Bilgileri */}
           {(customerName && customerName !== 'Anonim Müşteri' || email && email !== 'anonim@dmar.com' || phone) && (
-            <Card className="border-0 shadow-none bg-green-50">
+            <Card className="border border-green-200 shadow-sm bg-green-50">
               <CardHeader className="pb-2 px-3 pt-3">
-                <CardTitle className="text-sm">Müşteri İletişim Bilgileri</CardTitle>
+                <CardTitle className="text-sm text-green-800 font-semibold">📞 Müşteri İletişim Bilgileri</CardTitle>
               </CardHeader>
               <CardContent className="pt-0 px-3 pb-3">
                 <div className="space-y-2">
@@ -175,9 +175,9 @@ export function FeedbackMessage({ subject, message, email, phone, customerName }
 
           {/* Detaylı Puanlar */}
           {feedback.detailedRatings.length > 0 && (
-            <Card className="border-0 shadow-none bg-gray-50">
+            <Card className="border border-gray-200 shadow-sm bg-gray-50">
               <CardHeader className="pb-2 px-3 pt-3">
-                <CardTitle className="text-sm">Detaylı Puanlar</CardTitle>
+                <CardTitle className="text-sm text-gray-800 font-semibold">⭐ Detaylı Puanlar</CardTitle>
               </CardHeader>
               <CardContent className="pt-0 px-3 pb-3">
                 <div className="grid grid-cols-1 gap-2">
@@ -203,12 +203,12 @@ export function FeedbackMessage({ subject, message, email, phone, customerName }
 
           {/* Kullanıcı Mesajı */}
           {feedback.userMessage && (
-            <Card className="border-0 shadow-none bg-blue-50">
+            <Card className="border border-blue-200 shadow-sm bg-blue-50">
               <CardHeader className="pb-2 px-3 pt-3">
-                <CardTitle className="text-sm">Müşteri Yorumu</CardTitle>
+                <CardTitle className="text-sm text-blue-800 font-semibold">💬 Müşteri Yorumu</CardTitle>
               </CardHeader>
               <CardContent className="pt-0 px-3 pb-3">
-                <p className="text-sm text-gray-700">{feedback.userMessage}</p>
+                <p className="text-sm text-gray-800 leading-relaxed">{feedback.userMessage}</p>
               </CardContent>
             </Card>
           )}
