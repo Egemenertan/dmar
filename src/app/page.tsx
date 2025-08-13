@@ -1,229 +1,230 @@
 "use client"
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import { useState, useEffect } from "react"
+import { DateRange } from "react-day-picker"
+import { addDays, format } from "date-fns"
 
-
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Calendar } from "@/components/ui/calendar"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { 
-  Package, 
-  ShoppingCart, 
-  DollarSign,
-  Activity,
-  Calendar,
-  AlertTriangle,
-  BarChart3
+  Calendar as CalendarIcon, 
+  DollarSign, 
+  ShoppingCart,
+  Store,
+  RefreshCw
 } from "lucide-react"
+import DashboardCharts from "@/components/charts/DashboardCharts"
+
+interface MarketRevenue {
+  marketName: string;
+  totalRevenue: number;
+}
+
+interface DailyTrendData {
+  date: string;
+  revenue: number;
+  orders: number;
+}
 
 export default function Home() {
-  
+  const [date, setDate] = useState<DateRange | undefined>({
+    from: new Date(),
+    to: new Date(),
+  })
+
+  const [stats, setStats] = useState({
+    totalRevenue: 0,
+    totalOrders: 0,
+  });
+  const [marketRevenue, setMarketRevenue] = useState<MarketRevenue[]>([]);
+  const [dailyTrend, setDailyTrend] = useState<DailyTrendData[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchStats = async () => {
+    if (!date?.from || !date?.to) return;
+
+    setLoading(true);
+    setStats({ totalRevenue: 0, totalOrders: 0 });
+    setMarketRevenue([]);
+    setDailyTrend([]);
+
+    const startDate = date.from;
+    const endDate = date.to;
+    const dateRange = [];
+    let currentDate = new Date(startDate);
+
+    while (currentDate <= endDate) {
+      dateRange.push(new Date(currentDate));
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    let accumulatedRevenue = 0;
+    let accumulatedOrders = 0;
+    const accumulatedMarketRevenue: { [key: string]: number } = {};
+
+    for (const day of dateRange) {
+      const formattedDate = format(day, 'yyyy-d-M');
+      
+      try {
+        const [summaryRes, marketRes] = await Promise.all([
+          fetch(`/api/summary-stats?startDate=${formattedDate}&endDate=${formattedDate}`),
+          fetch(`/api/market-revenue?startDate=${formattedDate}&endDate=${formattedDate}`)
+        ]);
+        
+        const summaryData = await summaryRes.json();
+        const marketData = await marketRes.json();
+
+        if (summaryData.totalRevenue > 0) {
+          accumulatedRevenue += summaryData.totalRevenue;
+          accumulatedOrders += summaryData.totalOrders;
+
+          setStats(prev => ({
+            totalRevenue: prev.totalRevenue + summaryData.totalRevenue,
+            totalOrders: prev.totalOrders + summaryData.totalOrders,
+          }));
+
+          setDailyTrend(prev => [...prev, {
+            date: format(day, 'dd/MM'),
+            revenue: summaryData.totalRevenue,
+            orders: summaryData.totalOrders,
+          }]);
+        }
+
+        if (Array.isArray(marketData)) {
+          marketData.forEach(market => {
+            accumulatedMarketRevenue[market.marketName] = (accumulatedMarketRevenue[market.marketName] || 0) + market.totalRevenue;
+          });
+
+          setMarketRevenue(Object.entries(accumulatedMarketRevenue).map(([marketName, totalRevenue]) => ({
+            marketName,
+            totalRevenue,
+          })));
+        }
+      } catch (error) {
+        console.error(`Failed to fetch data for ${formattedDate}:`, error);
+      }
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchStats();
+  }, [date]);
+
   return (
-    <div className="space-y-6">
-      {/* Üst İstatistik Kartları */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="rounded-2xl shadow-sm bg-gray-50">
+    <div className="space-y-8 p-1">
+      {/* Date Range Filter */}
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-semibold">Dashboard</h2>
+        <div className="flex items-center gap-4">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                id="date"
+                variant={"outline"}
+                className="w-[300px] justify-start text-left font-normal"
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {date?.from ? (
+                  date.to ? (
+                    <>
+                      {format(date.from, "LLL dd, y")} -{" "}
+                      {format(date.to, "LLL dd, y")}
+                    </>
+                  ) : (
+                    format(date.from, "LLL dd, y")
+                  )
+                ) : (
+                  <span>Pick a date</span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="end">
+              <Calendar
+                initialFocus
+                mode="range"
+                defaultMonth={date?.from}
+                selected={date}
+                onSelect={setDate}
+                numberOfMonths={2}
+                disabled={{ after: new Date() }}
+              />
+            </PopoverContent>
+          </Popover>
+          <Button onClick={() => setDate({from: new Date(), to: new Date()})}>Bugün</Button>
+          <Button variant="outline" onClick={() => setDate({from: addDays(new Date(), -6), to: new Date()})}>Son 7 Gün</Button>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={fetchStats}
+            disabled={loading}
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            Yenile
+          </Button>
+        </div>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
+        <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Günlük Satış
-            </CardTitle>
-            <DollarSign className="h-4 w-4 text-gray-500" />
+            <CardTitle className="text-sm font-medium">Toplam Ciro</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-gray-900">₺18,450</div>
+            {loading ? <div className="text-2xl font-bold">Yükleniyor...</div> : <div className="text-2xl font-bold">₺{stats.totalRevenue.toLocaleString('tr-TR')}</div>}
             <p className="text-xs text-muted-foreground">
-              <span className="text-green-600">+15.2%</span> dünden
+              Seçilen aralıktaki toplam ciro
             </p>
           </CardContent>
         </Card>
-        
-        <Card className="rounded-2xl shadow-sm bg-gray-50">
+        <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Toplam Ürün
-            </CardTitle>
-            <Package className="h-4 w-4 text-gray-500" />
+            <CardTitle className="text-sm font-medium">Toplam Sipariş</CardTitle>
+            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-gray-900">2,847</div>
+            {loading ? <div className="text-2xl font-bold">Yükleniyor...</div> : <div className="text-2xl font-bold">{stats.totalOrders}</div>}
             <p className="text-xs text-muted-foreground">
-              <span className="text-green-600">+23</span> yeni ürün
-            </p>
-          </CardContent>
-        </Card>
-        
-        <Card className="rounded-2xl shadow-sm bg-gray-50">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Günlük Sipariş
-            </CardTitle>
-            <ShoppingCart className="h-4 w-4 text-gray-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-gray-900">347</div>
-            <p className="text-xs text-muted-foreground">
-              <span className="text-green-600">+8.1%</span> bu hafta
-            </p>
-          </CardContent>
-        </Card>
-        
-        <Card className="rounded-2xl shadow-sm bg-gray-50">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Kritik Stok
-            </CardTitle>
-            <AlertTriangle className="h-4 w-4 text-gray-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-gray-900">12</div>
-            <p className="text-xs text-muted-foreground">
-              <span className="text-red-600">Acil Sipariş</span> gerekli
+              Seçilen aralıktaki toplam sipariş
             </p>
           </CardContent>
         </Card>
       </div>
-
-      {/* Alt Bölüm - Son Aktiviteler ve Analitik */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
-        {/* Sol Kısım - Son Satışlar */}
-        <div className="lg:col-span-4">
-          <Card className="rounded-2xl shadow-sm bg-gray-50">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Activity className="h-5 w-5 text-gray-600" />
-                Son Satışlar
-              </CardTitle>
-              <CardDescription>
-                Günün en son satış işlemleri
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {[
-                  { customer: "Müşteri #1245", item: "Süt, Ekmek, Yumurta", amount: "₺28.50", time: "2 dakika önce", type: "sale" },
-                  { customer: "Müşteri #1246", item: "Deterjan, Şampuan", amount: "₺45.20", time: "5 dakika önce", type: "sale" },
-                  { customer: "Tedarikçi", item: "Sebze Stoğu Eklendi", amount: "+150 adet", time: "10 dakika önce", type: "stock" },
-                  { customer: "Müşteri #1247", item: "İçecek, Cips, Çikolata", amount: "₺67.80", time: "15 dakika önce", type: "sale" },
-                  { customer: "Sistem", item: "Kritik stok uyarısı", amount: "Domates", time: "22 dakika önce", type: "warning" },
-                ].map((activity, index) => (
-                  <div key={index} className="flex items-center justify-between py-2 border-b border-border/50 last:border-b-0">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                        activity.type === 'sale' ? 'bg-gray-100 text-gray-600' :
-                        activity.type === 'stock' ? 'bg-gray-100 text-gray-600' :
-                        'bg-gray-100 text-gray-600'
-                      }`}>
-                        {activity.type === 'sale' ? <DollarSign className="h-4 w-4" /> :
-                         activity.type === 'stock' ? <Package className="h-4 w-4" /> :
-                         <AlertTriangle className="h-4 w-4" />}
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">{activity.customer}</p>
-                        <p className="text-xs text-muted-foreground">{activity.item}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant={
-                        activity.type === 'sale' ? 'default' : 
-                        activity.type === 'stock' ? 'secondary' : 
-                        'destructive'
-                      }>
-                        {activity.amount}
-                      </Badge>
-                      <p className="text-xs text-muted-foreground">{activity.time}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Sağ Kısım - Hızlı İstatistikler */}
-        <div className="lg:col-span-3 space-y-6">
-          <Card className="rounded-2xl shadow-sm bg-gray-50">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5 text-gray-600" />
-                Bugünkü Özet
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
-                  <span className="text-sm text-muted-foreground">Toplam Satış</span>
-                  <span className="text-sm font-bold text-gray-900">₺18,450</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Satış Adedi</span>
-                  <span className="text-sm font-medium">347</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Yeni Müşteri</span>
-                  <span className="text-sm font-medium">+12</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Bekleyen Sipariş</span>
-                  <Badge variant="secondary">8</Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Kasa Durumu</span>
-                  <Badge variant="default">Açık</Badge>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="rounded-2xl shadow-sm bg-gray-50">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="h-5 w-5 text-gray-600" />
-                Stok Durumu
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm text-muted-foreground">Gıda Ürünleri</span>
-                    <span className="text-sm font-medium">85%</span>
-                  </div>
-                  <div className="w-full bg-secondary rounded-full h-2">
-                    <div className="bg-gray-400 h-2 rounded-full w-[85%]"></div>
-                  </div>
-                </div>
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm text-muted-foreground">Temizlik Ürünleri</span>
-                    <span className="text-sm font-medium">65%</span>
-                  </div>
-                  <div className="w-full bg-secondary rounded-full h-2">
-                    <div className="bg-gray-400 h-2 rounded-full w-[65%]"></div>
-                  </div>
-                </div>
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm text-muted-foreground">İçecekler</span>
-                    <span className="text-sm font-medium">92%</span>
-                  </div>
-                  <div className="w-full bg-secondary rounded-full h-2">
-                    <div className="bg-gray-400 h-2 rounded-full w-[92%]"></div>
-                  </div>
-                </div>
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm text-muted-foreground">Sebze & Meyve</span>
-                    <span className="text-sm font-medium">23%</span>
-                  </div>
-                  <div className="w-full bg-secondary rounded-full h-2">
-                    <div className="bg-gray-400 h-2 rounded-full w-[23%]"></div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-         
-        </div>
+      
+      {/* Market Revenue */}
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {loading ? (
+          <p>Yükleniyor...</p>
+        ) : (
+          marketRevenue.map((market) => (
+            <Card key={market.marketName}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">{market.marketName.replace('DEPO', '').trim()}</CardTitle>
+                <Store className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">₺{market.totalRevenue.toLocaleString('tr-TR')}</div>
+                <p className="text-xs text-muted-foreground">
+                  Seçilen aralıktaki toplam ciro
+                </p>
+              </CardContent>
+            </Card>
+          ))
+        )}
       </div>
+
+      {/* Interactive Charts Section */}
+      <DashboardCharts 
+        marketRevenue={marketRevenue}
+        date={date}
+        loading={loading}
+        dailyTrend={dailyTrend}
+      />
     </div>
   )
 }

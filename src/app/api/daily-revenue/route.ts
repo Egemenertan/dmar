@@ -1,0 +1,38 @@
+import { NextResponse, NextRequest } from 'next/server';
+
+export async function GET(request: NextRequest) {
+  const searchParams = request.nextUrl.searchParams;
+  const dateParam = searchParams.get('date');
+  
+  // Use the provided date parameter, or default to today if not provided.
+  const queryDate = dateParam || new Date().toISOString().split('T')[0];
+  
+  const query = `SELECT ISNULL(SUM(TOTAL), 0) AS DailyRevenue FROM VE_INVOICE WHERE TRANSDATE = '${queryDate}'`;
+
+  try {
+    const response = await fetch('http://46.30.179.216:8640/TrexIntegrationService/REST/GetJson', {
+      method: 'POST',
+      headers: {
+        'accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        Query: query,
+        ApiKey: '8059858119',
+        ReturnSchema: false,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`API call failed with status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const dailyRevenue = JSON.parse(data)[0]?.DailyRevenue || 0;
+
+    return NextResponse.json({ dailyRevenue });
+  } catch (error) {
+    console.error('Failed to fetch daily revenue:', error);
+    return NextResponse.json({ error: 'Failed to fetch daily revenue' }, { status: 500 });
+  }
+}

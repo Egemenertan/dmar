@@ -1,0 +1,1516 @@
+Mert Yazılım Bilgisayar Elektronik Ltd. Şti.
+1
+TDS Entegraston Servisi
+Versiyon : 1.1.1.0
+Versiyon Tarihi : 30.03.2018
+Mert Yazılım Bilgisayar Elektronik Ltd. Şti.
+2
+İçindekiler
+1. Sysmond TDS Entegrasyon Servisi............................................................................................................... 3
+2. Sysmond TDS entegrasyon servisi Entegrasyon Metodları ........................................................................ 3
+2.1. AddAct Modeli...................................................................................................................................... 3
+2.2. Add Delivery Modeli............................................................................................................................. 6
+2.3. AddExprevCard Modeli......................................................................................................................... 9
+2.4. AddInvoice Modeli.............................................................................................................................. 10
+2.5. AddOrder Modeli................................................................................................................................ 13
+2.6. AddOrderRecId Modeli....................................................................................................................... 16
+2.7. AddReceipt Modeli............................................................................................................................. 19
+2.8. AddStockCard Modeli......................................................................................................................... 21
+2.9. AddStockTransRec Modeli.................................................................................................................. 23
+2.10. AddWorker Modeli......................................................................................................................... 25
+2.11. ChekKart......................................................................................................................................... 27
+2.12. GetObject Modeli ........................................................................................................................... 28
+2.13. OrderCancel Modeli ....................................................................................................................... 29
+2.14. AddOffer Modeli............................................................................................................................. 30
+2.15. GetJsonLotInfo modeli ................................................................................................................... 33
+2.16. GetSevkiyatPlans Modeli................................................................................................................ 34
+2.17. AddSevk Modeli.............................................................................................................................. 35
+Mert Yazılım Bilgisayar Elektronik Ltd. Şti.
+3
+1. Sysmond TDS Entegrasyon Servisi
+Bu doküman Sysmond TDS entegrasyon servisi entegrasyon katmanında hizmet veren web servis
+uygulaması ve metodları hakkında bilgi verecektir.
+2. Sysmond TDS entegrasyon servisi Entegrasyon Metodları
+2.1. AddAct Modeli
+<Envelope xmlns="http://schemas.xmlsoap.org/soap/envelope/">
+ <Body>
+ <AddAct xmlns="http://tempuri.org/">
+ <!-- Optional -->
+ <newAct>
+ <ActId xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[long?]</ActId>
+ <ActName xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string]</ActName>
+ <ActName2 xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</ActName2>
+ <ActNo xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string]</ActNo>
+ <ActType xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</ActType>
+ <Address1 xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</Address1>
+ <Address2 xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</Address2>
+ <Address3 xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</Address3>
+ <!-- Optional -->
+ <AddressList xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">
+ <!-- Optional -->
+ <Address>
+ <Address1>[string?]</Address1>
+ <Address2>[string?]</Address2>
+ <Address3>[string?]</Address3>
+ <AddressType>[string?]</AddressType>
+ <City>[string?]</City>
+ <Country>[string?]</Country>
+ <Email>[string?]</Email>
+ <Gsm>[string?]</Gsm>
+ <Phone1>[string?]</Phone1>
+ <PostalCode>[string?]</PostalCode>
+ <Town>[string?]</Town>
+ <Web>[string?]</Web>
+ </Address>
+ </AddressList>
+ <ApiKey xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string]</ApiKey>
+ <City xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</City>
+ <CompanyId xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[int?]</CompanyId>
+ <ContactName
+xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</ContactName>
+ <Country xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</Country>
+ <CurrCode xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</CurrCode>
+ <Description xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</Description>
+ <EFatura xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[boolean?]</EFatura>
+ <EditDate xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</EditDate>
+ <EditUserId xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</EditUserId>
+ <Email xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</Email>
+ <EmployeeId xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[int?]</EmployeeId>
+Mert Yazılım Bilgisayar Elektronik Ltd. Şti.
+4
+ <Fax xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</Fax>
+ <GroupCode xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</GroupCode>
+ <Gsm xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</Gsm>
+ <InsertDate xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</InsertDate>
+ <InsertUsetId xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</InsertUsetId>
+ <Location1 xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</Location1>
+ <Paymentday xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[int?]</Paymentday>
+ <Phone1 xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</Phone1>
+ <Phone2 xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</Phone2>
+ <SpecCode1 xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</SpecCode1>
+ <SpecCode2 xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</SpecCode2>
+ <SpecCode3 xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</SpecCode3>
+ <SpecCode4 xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</SpecCode4>
+ <Status xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[boolean?]</Status>
+ <TCKN xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</TCKN>
+ <TaxNo xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</TaxNo>
+ <TaxOffice xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</TaxOffice>
+ <Town xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</Town>
+ </newAct>
+ </AddAct>
+ </Body>
+</Envelope>
+Parametre Tip Zorunlu =1
+Zorunlu değil=0 Açıklama
+1 ActId Long 0 Sysmond “Cari Kart ID” bilgisidir.
+2 ActName string 1 “Ünvan” bilgisidir.
+3 ActName2 string 0 “Ünvan2” bilgisidir.
+4 ActNo string 1 “Cari No” bilgisidir.
+5 ActType string 0
+Purchaser = 500
+Vendor = 501
+PurchaserVendor = 502
+6 Address1 string 0 Carinin Adres bilgisi 1
+7 Address2 string 0 Carinin Adres bilgisi 2
+8 Address3 string 0 Carinin Adres bilgisi 3
+AddressList Adres bilgileri
+9 AddressType string 0
+Business = 3000,
+Home = 3001,
+Invoice = 3002,
+Delivery = 3004,
+Other = 3005
+10 City string 0 Şehir
+11 Country string 0 Ülke
+12 Email string 0 Email
+13 Gsm string 0 Cep Telefon Numarası
+14 Phone1 string 0 Telefon 1
+15 PostalCode string 0 Posta Kodu
+16 Town string 0 İlçe
+17 Web string 0 Web Adresi
+Address Adresler son
+18 ApiKey string 1 Sysmond lisans numarası
+19 City string 0 Şehir
+20 CompanyId Int 0 Veri gönderilen şirketin ID bilgisi
+21 ContactName string 0 Yetkili Adı Soyadı
+22 Country string 0 Ülke
+23 CurrCode string 0 Para Birimi (TL – EUR - USD – GBP - JPY)
+24 Description string 0 Açıklama
+Mert Yazılım Bilgisayar Elektronik Ltd. Şti.
+5
+25 EFatura boolean 0
+26 EditDate string 0 Düzenleme tarihi
+27 EditUserId string 0 Düzenleme yapan personel ID bilgisi
+28 Email string 0 Email
+29 EmployeeId Int 0 Personel ID
+30 Fax string 0 Faks
+31 GroupCode string 0
+32 Gsm string 0 Cep Telefon Numarası
+33 InsertDate string 0 Kayıt Tarihi
+34 InsertUserId string 0 Kayıt Eden Personel ID bilgisi
+35 Location1 string 0
+36 PaymentDay Int 0 Vade Gün
+37 Phone1 string 0 Telefon 1
+38 Phone2 string 0 Telefon 2
+39 SpecCode1 string 0 Özel Kod 1
+40 SpecCode2 string 0 Özel Kod 2
+41 SpecCode3 string 0 Özel Kod 3
+42 SpecCode4 string 0 Özel Kod 4
+43 Status boolean 0
+Open = 2
+Closed = 3
+44 TCKN string 0 TC Kimlik No
+45 TaxNo string 0 Vergi No
+46 TaxOffice string 0 Vergi Dairesi
+47 Town string 0 İlçe
+ 
+Mert Yazılım Bilgisayar Elektronik Ltd. Şti.
+6
+2.2. Add Delivery Modeli
+<Envelope xmlns="http://schemas.xmlsoap.org/soap/envelope/">
+ <Body>
+ <AddDelivery xmlns="http://tempuri.org/">
+ <!-- Optional -->
+ <newDelivery>
+ <ActNo xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string]</ActNo>
+ <!-- Optional -->
+ <Address xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">
+ <Address1>[string?]</Address1>
+ <Address2>[string?]</Address2>
+ <Address3>[string?]</Address3>
+ <AddressType>[string?]</AddressType>
+ <City>[string?]</City>
+ <Country>[string?]</Country>
+ <Email>[string?]</Email>
+ <Gsm>[string?]</Gsm>
+ <Phone1>[string?]</Phone1>
+ <PostalCode>[string?]</PostalCode>
+ <Town>[string?]</Town>
+ <Web>[string?]</Web>
+ </Address>
+ <ApiKey xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string]</ApiKey>
+ <CompanyId xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[int?]</CompanyId>
+ <Cperiodid xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[int?]</Cperiodid>
+ <CurrCode xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</CurrCode>
+ <CurrExc xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[double?]</CurrExc>
+ <DefDrvName xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</DefDrvName>
+ <DefDrvSurName
+xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</DefDrvSurName>
+ <DefDrvTCNO xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</DefDrvTCNO>
+ <DeliveryItemList xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">
+ <!-- Optional -->
+ <DeliveryItem>
+ <CurrCode>[string?]</CurrCode>
+ <CurrExc>[double?]</CurrExc>
+ <Description>[string?]</Description>
+ <Discount1>[double?]</Discount1>
+ <Discount2>[double?]</Discount2>
+ <Discount3>[double?]</Discount3>
+ <Discount4>[double?]</Discount4>
+ <Discount5>[double?]</Discount5>
+ <Discount6>[double?]</Discount6>
+ <Price>[double?]</Price>
+ <Quantity>[double]</Quantity>
+ <Quantity2>[double?]</Quantity2>
+ <Quantity3>[double?]</Quantity3>
+ <Status>[string?]</Status>
+ <StockNo>[string]</StockNo>
+ <UnitName>[string?]</UnitName>
+Mert Yazılım Bilgisayar Elektronik Ltd. Şti.
+7
+ <Vat>[double?]</Vat>
+ <VatInOut>[boolean?]</VatInOut>
+ </DeliveryItem>
+ </DeliveryItemList>
+ <DeliveryStatus
+xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</DeliveryStatus>
+ <DeliveryType xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string]</DeliveryType>
+ <DepotNo xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</DepotNo>
+ <Description xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</Description>
+ <Description1 xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</Description1>
+ <EmployeeNo xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</EmployeeNo>
+ <ReceiptNo xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string]</ReceiptNo>
+ <ReceiptTypeId
+xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[double?]</ReceiptTypeId>
+ <TransCode xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</TransCode>
+ <TransDate xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[dateTime]</TransDate>
+ </newDelivery>
+ </AddDelivery>
+ </Body>
+</Envelope>
+Parametre Tip Zorunlu =1
+Zorunlu değil=0 Açıklama
+1 ActNo string 1 “Cari No” bilgisidir.
+Address Adresler
+2 Address1 string 0 Carinin Adres bilgisi 1
+3 Address2 string 0 Carinin Adres bilgisi 2
+4 Address3 string 0 Carinin Adres bilgisi 3
+5 AddressType string 0
+Business = 3000,
+Home = 3001,
+Invoice = 3002,
+Delivery = 3004,
+Other = 3005
+6 City string 0 Şehir
+7 Country string 0 Ülke
+8 Email string 0 Email
+9 Gsm string 0 Cep Telefon Numarası
+10 Phone1 string 0 Telefon 1
+11 PostalCode string 0 Posta Kodu
+12 Town string 0 İlçe
+13 Web string 0 Web Adresi
+Address Adresler son
+14 ApiKey string 1 Sysmond lisans numarası
+15 CompayId İnt 0 Veri gönderilen şirketin ID bilgisi
+16 CperiodId İnt 0 Veri gönderilen Dönem ID bilgisi
+17 CurrCode string 1 Para Birimi (TL – EUR - USD – GBP - JPY)
+18 CurrExc double 1 Döviz kuru
+19 DefDrvName string 0 Şoför Adı
+20 DefDrvSurName string 0 Şoför Soyadı
+21 DefDrvTCNO string 0 Şoför TCNO
+DELIVERYITEM İrsaliye detay bilgileri
+22 CurrCode string 1 Para Birimi (TL – EUR - USD – GBP - JPY)
+23 CurrExc double 1 Döviz kuru
+Mert Yazılım Bilgisayar Elektronik Ltd. Şti.
+8
+24 Description string 0 Açıklama
+25 Discount1 double 0 İskonto Oranı 1
+26 Discount2 double 0 İskonto Oranı 2
+27 Discount3 double 0 İskonto Oranı 3
+28 Discount4 double 0 İskonto Oranı 4
+29 Discount5 double 0 İskonto Oranı 5
+30 Discount6 double 0 İskonto Oranı 6
+31 Price double 1 Fiyat
+32 Quantity double 1 Miktar
+33 Quantity2 double 0 Miktar 2
+34 Quantity3 double 0 Miktar 3
+35 Status string 0
+Open = 2
+Closed = 3
+36 StockNo string 1 Stok No
+37 UnitName string 1 Birim Adı (Adet-Kg-Mt)
+38 Vat Double 1 KDV Oranı (0-1-8-18)
+39 VatInOut Boolean 1 KDV Dahil / Hariç (0 / 1)
+40 DeliveryStatus string 0
+Open = 2
+Closed = 3
+Canceled = 4
+41 DeliveryType string 1
+Satis = 102
+Satinalma = 202
+SatisIade = 120
+SatinalmaIade = 220
+42 DepotNo string 1 Depo No
+43 Description string 0 Açıklama
+44 Description1 string 0
+Açıklama (Beton Reçete bilgisi
+gönderilecek.)
+45 EmployeeNo string 0 Personel No
+46 ReceiptNo string 1 Fiş No
+47 ReceiptType string 0 Evrak Türü ID Bilgisi
+48 TransCode string 0 Transfer Kodu
+49 TransDate dateTime 1 Belge Tarihi
+ 
+Mert Yazılım Bilgisayar Elektronik Ltd. Şti.
+9
+2.3. AddExprevCard Modeli
+<Envelope xmlns="http://schemas.xmlsoap.org/soap/envelope/">
+ <Body>
+ <AddExprevCard xmlns="http://tempuri.org/">
+ <!-- Optional -->
+ <newexprev>
+ <ApiKey xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string]</ApiKey>
+ <CompanyId xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[int?]</CompanyId>
+ <ExprevName xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string]</ExprevName>
+ <ExprevNo xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string]</ExprevNo>
+ <Exprevtype xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</Exprevtype>
+ <Status xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[boolean?]</Status>
+ <Vat xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[int?]</Vat>
+ <VatInOut xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[boolean?]</VatInOut>
+ </newexprev>
+ </AddExprevCard>
+ </Body>
+</Envelope>
+Parametre Tip Zorunlu =1
+Zorunlu değil=0 Açıklama
+1 ApiKey string 1 Sysmond lisans numarası
+2 CompanyId int 1 Veri gönderilen şirketin ID bilgisi
+3 ExprevName string 1 Gelir/Gider Adı
+4 ExprevNo string 1 Gelir/Gider No
+5 ExprevType string 1
+Gelir = 800
+Gider = 801
+GelirGider = 802
+6 Status Boolean 0
+Open = 2
+Closed = 3
+7 Vat İnt 0 KDV Oranı (0-1-8-18)
+8 VatInOut boolean 0 KDV Dahil / Hariç (0 / 1)
+
+ 
+Mert Yazılım Bilgisayar Elektronik Ltd. Şti.
+10
+2.4. AddInvoice Modeli
+<Envelope xmlns="http://schemas.xmlsoap.org/soap/envelope/">
+ <Body>
+ <AddInvoice xmlns="http://tempuri.org/">
+ <!-- Optional -->
+ <newInvoice>
+ <ActNo xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string]</ActNo>
+ <!-- Optional -->
+ <Address xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">
+ <Address1>[string?]</Address1>
+ <Address2>[string?]</Address2>
+ <Address3>[string?]</Address3>
+ <AddressType>[string?]</AddressType>
+ <City>[string?]</City>
+ <Country>[string?]</Country>
+ <Email>[string?]</Email>
+ <Gsm>[string?]</Gsm>
+ <Phone1>[string?]</Phone1>
+ <PostalCode>[string?]</PostalCode>
+ <Town>[string?]</Town>
+ <Web>[string?]</Web>
+ </Address>
+ <ApiKey xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string]</ApiKey>
+ <CompanyId xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[int?]</CompanyId>
+ <Cperiodid xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[int?]</Cperiodid>
+ <CurrCode xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</CurrCode>
+ <CurrExc xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[double?]</CurrExc>
+ <DepotNo xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</DepotNo>
+ <Description xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</Description>
+ <EmployeeNo xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</EmployeeNo>
+ <InvoiceItemList xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">
+ <!-- Optional -->
+ <InvoiceItem>
+ <ActionCode>[string]</ActionCode>
+ <CurrCode>[string?]</CurrCode>
+ <CurrExc>[double?]</CurrExc>
+ <Description>[string?]</Description>
+ <Discount1>[double?]</Discount1>
+ <Discount2>[double?]</Discount2>
+ <Discount3>[double?]</Discount3>
+ <Discount4>[double?]</Discount4>
+ <Discount5>[double?]</Discount5>
+ <Discount6>[double?]</Discount6>
+ <Price>[double?]</Price>
+ <Quantity>[double]</Quantity>
+ <Quantity2>[double?]</Quantity2>
+ <Quantity3>[double?]</Quantity3>
+ <Status>[string?]</Status>
+ <StockNo>[string]</StockNo>
+ <Vat>[double?]</Vat>
+Mert Yazılım Bilgisayar Elektronik Ltd. Şti.
+11
+ <VatInOut>[boolean?]</VatInOut>
+ </InvoiceItem>
+ </InvoiceItemList>
+ <InvoiceStatus
+xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</InvoiceStatus>
+ <InvoiceType xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string]</InvoiceType>
+ <ReceiptNo xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string]</ReceiptNo>
+ <ReceiptTypeId
+xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[double?]</ReceiptTypeId>
+ <TransCode xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</TransCode>
+ <TransDate xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[dateTime]</TransDate>
+ </newInvoice>
+ </AddInvoice>
+ </Body>
+</Envelope>
+Parametre Tip Zorunlu =1
+Zorunlu değil=0 Açıklama
+1 ActNo string 1
+Gönderilecek irsaliyedeki “Cari No”
+bilgisidir.
+Address Adresler
+2 Address1 string 0 Carinin Adres bilgisi 1
+3 Address2 string 0 Carinin Adres bilgisi 2
+4 Address3 string 0 Carinin Adres bilgisi 3
+5 AddressType string 0
+Business = 3000,
+Home = 3001,
+Invoice = 3002,
+Delivery = 3004,
+Other = 3005
+6 City string 0 Şehir
+7 Country string 0 Ülke
+8 Email string 0 Email
+9 Gsm string 0 Cep Telefon Numarası
+10 Phone1 string 0 Telefon 1
+11 PostalCode string 0 Posta Kodu
+12 Town string 0 İlçe
+13 Web string 0 Web Adresi
+Address Adresler son
+14 Apikey int 1 Sysmond lisans numarası
+15 CompanyId int 0 Veri gönderilen şirketin ID bilgisi
+16 CperiodId int 0 Veri gönderilen Dönem ID bilgisi
+17 CurrCode String 1 Para Birimi (TL – EUR - USD – GBP - JPY)
+18 CurrExc Double 1 Döviz kuru
+19 DepotNo String 1 Depo No
+20 Description String 0 Açıklama
+21 EmployeeNo String 0 Personel No
+INVOICEITEM Fatura detay bilgileri
+22 ActionCode String 0
+Stock
+Gelir
+Gider
+23 CurrCode String 1 Para Birimi (TL – EUR - USD – GBP - JPY)
+24 CurrExc Double 1 Döviz kuru
+25 Description string 0 Açıklama
+Mert Yazılım Bilgisayar Elektronik Ltd. Şti.
+12
+26 Discount1 double 0 İskonto Oranı 1
+27 Discount2 double 0 İskonto Oranı 2
+28 Discount3 double 0 İskonto Oranı 3
+29 Discount4 double 0 İskonto Oranı 4
+30 Discount5 double 0 İskonto Oranı 5
+31 Discount6 double 0 İskonto Oranı 6
+32 Price double 1 Fiyat
+33 Quantity double 1 Miktar
+34 Quantity2 double 0 Miktar 2
+35 Quantity3 double 0 Miktar 3
+36 Status String 0
+Open = 2
+Closed = 3
+37 StockNo String 1 Stok No
+38 Vat double 1 KDV Oranı (0-1-8-18)
+39 VatInOut boolean 0 KDV Dahil / Hariç (0 / 1)
+40 İnvoiceStatus string 0
+Open = 2
+Closed = 3
+Canceled = 4
+41 İnvoiceType string 1
+Satis = 101
+Satinalma = 201
+SatisIade = 104
+SatinalmaIade = 204
+42 ReceiptNo string 1 Fiş No
+43 ReceiptTypeId double 0 Evrak Türü ID Bilgisi
+44 TransCode string 0 Transfer Kodu
+45 TransDate dateTime 1 Belge Tarihi
+Mert Yazılım Bilgisayar Elektronik Ltd. Şti.
+13
+
+2.5. AddOrder Modeli
+<Envelope xmlns="http://schemas.xmlsoap.org/soap/envelope/">
+ <Body>
+ <AddOrder xmlns="http://tempuri.org/">
+ <!-- Optional -->
+ <newOrder>
+ <ActId xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[int?]</ActId>
+ <ActNo xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string]</ActNo>
+ <!-- Optional -->
+ <Address xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">
+ <Address1>[string?]</Address1>
+ <Address2>[string?]</Address2>
+ <Address3>[string?]</Address3>
+ <AddressType>[string?]</AddressType>
+ <City>[string?]</City>
+ <Country>[string?]</Country>
+ <Email>[string?]</Email>
+ <Gsm>[string?]</Gsm>
+ <Phone1>[string?]</Phone1>
+ <PostalCode>[string?]</PostalCode>
+ <Town>[string?]</Town>
+ <Web>[string?]</Web>
+ </Address>
+ <ApiKey xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string]</ApiKey>
+ <CompanyId xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[int?]</CompanyId>
+ <Cperiodid xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[int?]</Cperiodid>
+ <CurrCode xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</CurrCode>
+ <CurrExc xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[double?]</CurrExc>
+ <DepotId xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[int?]</DepotId>
+ <DepotNo xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</DepotNo>
+ <Description xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</Description>
+ <EmployeeNo xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</EmployeeNo>
+ <GroupCode xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</GroupCode>
+ <KeyField xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</KeyField>
+ <OrderItemList xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">
+ <!-- Optional -->
+ <OrderItem>
+ <ActionCode>[string?]</ActionCode>
+ <CurrCode>[string?]</CurrCode>
+ <CurrExc>[double?]</CurrExc>
+ <DeliveredQuantity>[double?]</DeliveredQuantity>
+ <DeliveryDate>[dateTime?]</DeliveryDate>
+ <Description>[string?]</Description>
+ <Discount1>[float?]</Discount1>
+ <Discount2>[float?]</Discount2>
+ <Discount3>[float?]</Discount3>
+ <Discount4>[float?]</Discount4>
+ <Discount5>[float?]</Discount5>
+ <Discount6>[float?]</Discount6>
+Mert Yazılım Bilgisayar Elektronik Ltd. Şti.
+14
+ <Price>[double?]</Price>
+ <Quantity>[double]</Quantity>
+ <Quantity2>[double?]</Quantity2>
+ <Status>[string?]</Status>
+ <StockId>[int?]</StockId>
+ <StockNo>[string]</StockNo>
+ <TransCode>[string?]</TransCode>
+ <Vat>[float?]</Vat>
+ <VatInOut>[boolean?]</VatInOut>
+ </OrderItem>
+ </OrderItemList>
+ <OrderStatus xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</OrderStatus>
+ <ReceiptNo xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string]</ReceiptNo>
+ <ReceiptTypeId xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[int?]</ReceiptTypeId>
+ <SpecCode1 xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</SpecCode1>
+ <SpecCode2 xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</SpecCode2>
+ <TransCode xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</TransCode>
+ <TransDate xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[dateTime]</TransDate>
+ </newOrder>
+ </AddOrder>
+ </Body>
+</Envelope>
+Parametre Tip Zorunlu =1
+Zorunlu değil=0 Açıklama
+1 ActId int 0 Sysmond “Cari Kart ID” bilgisidir.
+2 ActNo string 1
+Gönderilecek irsaliyedeki “Cari No”
+bilgisidir.
+3 Address1 string 0 Carinin Adres bilgisi 1
+Address Adresler
+4 Address2 string 0 Carinin Adres bilgisi 2
+5 Address3 string 0 Carinin Adres bilgisi 3
+6 AddressType string 0
+Business = 3000,
+Home = 3001,
+Invoice = 3002,
+Delivery = 3004,
+Other = 3005
+7 City string 0 Şehir
+8 Country string 0 Ülke
+9 Email string 0 Email
+10 Gsm string 0 Cep Telefon Numarası
+11 Phone1 string 0 Telefon 1
+12 PostalCode string 0 Posta Kodu
+13 Town string 0 İlçe
+14 Web string 0 Web Adresi
+Address Adresler son
+15 ApiKey string 1 Sysmond lisans numarası
+16 CompanyId int 0 Veri gönderilen şirketin ID bilgisi
+17 CPeriodId int 0 Veri gönderilen Dönem ID bilgisi
+18 CurrCode string 1 Para Birimi (TL – EUR - USD – GBP - JPY)
+Mert Yazılım Bilgisayar Elektronik Ltd. Şti.
+15
+19 CurrExc double 1 Döviz kuru
+20 DepotId int 0 Depo ID
+21 DepotNo string 1 Depo No
+22 Description string 0 Açıklama
+23 EmployeeNo string 0 Personel No
+24 GroupCode string 0 Detay Grup Kodu
+25 KeyField string 0 -
+ORDERSITEM Sipariş detay bilgileri
+26 ActionCode string 1
+Stock
+Gelir
+Gider
+27 CurrCode string 1 Para Birimi (TL – EUR - USD – GBP - JPY)
+28 CurrExc double 1 Döviz kuru
+29 DeliveredQuantity double 0 -
+30 DeliveryDate dateTime 0 -
+31 Description string 0 Açıklama
+32 Discount1 float 0 İskonto Oranı 1
+33 Discount2 float 0 İskonto Oranı 2
+34 Discount3 float 0 İskonto Oranı 3
+35 Discount4 float 0 İskonto Oranı 4
+36 Discount5 float 0 İskonto Oranı 5
+37 Discount6 float 0 İskonto Oranı 6
+38 Price double 1 Fiyat
+39 Quantity double 1 Miktar
+40 Quantity2 double 0 Miktar 2
+41 Status string 0
+Open = 2
+Closed = 3
+42 StockId int 0 Stok ID
+43 StockNo string 1 Stok No
+44 TrancCode string 0 Transfer Kodu
+45 Vat Float 1 KDV Oranı (0-1-8-18)
+46 VatInOut boolean 0 KDV Dahil / Hariç (0 / 1)
+47 OrderStatus string 0
+Open = 2
+Closed = 3
+Canceled = 4
+48 ReceiptNo String 1 Fiş No
+49 ReceiptTypeId int 0 Evrak Türü ID Bilgisi
+50 SpecCode1 string 0 Özel Kod 1
+51 SpecCode2 string 0 Özel Kod 2
+52 TransCode string 0 Transfer Kodu
+53 TransDate dateTime 1 Belge Tarihi
+ 
+Mert Yazılım Bilgisayar Elektronik Ltd. Şti.
+16
+2.6. AddOrderRecId Modeli
+<Envelope xmlns="http://schemas.xmlsoap.org/soap/envelope/">
+ <Body>
+ <AddOrderRecId xmlns="http://tempuri.org/">
+ <!-- Optional -->
+ <newOrder>
+ <ActId xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[int?]</ActId>
+ <ActNo xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string]</ActNo>
+ <!-- Optional -->
+ <Address xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">
+ <Address1>[string?]</Address1>
+ <Address2>[string?]</Address2>
+ <Address3>[string?]</Address3>
+ <AddressType>[string?]</AddressType>
+ <City>[string?]</City>
+ <Country>[string?]</Country>
+ <Email>[string?]</Email>
+ <Gsm>[string?]</Gsm>
+ <Phone1>[string?]</Phone1>
+ <PostalCode>[string?]</PostalCode>
+ <Town>[string?]</Town>
+ <Web>[string?]</Web>
+ </Address>
+ <ApiKey xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string]</ApiKey>
+ <CompanyId xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[int?]</CompanyId>
+ <Cperiodid xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[int?]</Cperiodid>
+ <CurrCode xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</CurrCode>
+ <CurrExc xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[double?]</CurrExc>
+ <DepotId xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[int?]</DepotId>
+ <DepotNo xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</DepotNo>
+ <Description xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</Description>
+ <EmployeeNo xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</EmployeeNo>
+ <GroupCode xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</GroupCode>
+ <KeyField xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</KeyField>
+ <OrderItemList xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">
+ <!-- Optional -->
+ <OrderItem>
+ <ActionCode>[string?]</ActionCode>
+ <CurrCode>[string?]</CurrCode>
+ <CurrExc>[double?]</CurrExc>
+ <DeliveredQuantity>[double?]</DeliveredQuantity>
+ <DeliveryDate>[dateTime?]</DeliveryDate>
+ <Description>[string?]</Description>
+ <Discount1>[float?]</Discount1>
+ <Discount2>[float?]</Discount2>
+ <Discount3>[float?]</Discount3>
+ <Discount4>[float?]</Discount4>
+ <Discount5>[float?]</Discount5>
+ <Discount6>[float?]</Discount6>
+ <Price>[double?]</Price>
+Mert Yazılım Bilgisayar Elektronik Ltd. Şti.
+17
+ <Quantity>[double]</Quantity>
+ <Quantity2>[double?]</Quantity2>
+ <Status>[string?]</Status>
+ <StockId>[int?]</StockId>
+ <StockNo>[string]</StockNo>
+ <TransCode>[string?]</TransCode>
+ <Vat>[float?]</Vat>
+ <VatInOut>[boolean?]</VatInOut>
+ </OrderItem>
+ </OrderItemList>
+ <OrderStatus xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</OrderStatus>
+ <ReceiptNo xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string]</ReceiptNo>
+ <ReceiptTypeId xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[int?]</ReceiptTypeId>
+ <SpecCode1 xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</SpecCode1>
+ <SpecCode2 xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</SpecCode2>
+ <TransCode xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</TransCode>
+ <TransDate xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[dateTime]</TransDate>
+ </newOrder>
+ </AddOrderRecId>
+ </Body>
+</Envelope>
+Parametre Tip Zorunlu =1
+Zorunlu değil=0 Açıklama
+1 ActId int 0 Sysmond “Cari Kart ID” bilgisidir.
+2 ActNo string 1
+Gönderilecek irsaliyedeki “Cari No”
+bilgisidir.
+Address Adresler
+3 Address1 string 0 Carinin Adres bilgisi 1
+4 Address2 string 0 Carinin Adres bilgisi 2
+5 Address3 string 0 Carinin Adres bilgisi 3
+6 AddressType string 0
+Business = 3000,
+Home = 3001,
+Invoice = 3002,
+Delivery = 3004,
+Other = 3005
+7 City string 0 Şehir
+8 Country string 0 Ülke
+9 Email string 0 Email
+10 Gsm string 0 Cep Telefon Numarası
+11 Phone1 string 0 Telefon 1
+12 PostalCode string 0 Posta Kodu
+13 Town string 0 İlçe
+14 Web string 0 Web Adresi
+Address Adresler son
+15 ApiKey string 1 Sysmond lisans numarası
+16 CompanyId int 0 Veri gönderilen şirketin ID bilgisi
+17 CPeriodId int 0 Veri gönderilen Dönem ID bilgisi
+18 CurrCode string 1 Para Birimi (TL – EUR - USD – GBP - JPY)
+19 CurrExc double 1 Döviz kuru
+20 DepotId int 0 Depo ID
+Mert Yazılım Bilgisayar Elektronik Ltd. Şti.
+18
+21 DepotNo string 1 Depo No
+22 Description string 0 Açıklama
+23 EmployeeNo string 0 Personel No
+24 GroupCode string 0 Detay Grup Kodu
+25 KeyField string 0 -
+26 ActionCode string 1
+Stock
+Gelir
+Gider
+27 CurrCode string 1 Para Birimi (TL – EUR - USD – GBP - JPY)
+28 CurrExc double 1 Döviz kuru
+29 DeliveredQuantity double 0 -
+30 DeliveryDate dateTime 0 -
+31 Description string 0 Açıklama
+32 Discount1 float 0 İskonto Oranı 1
+33 Discount2 float 0 İskonto Oranı 2
+34 Discount3 float 0 İskonto Oranı 3
+35 Discount4 float 0 İskonto Oranı 4
+36 Discount5 float 0 İskonto Oranı 5
+37 Discount6 float 0 İskonto Oranı 6
+38 Price double 1 Fiyat
+39 Quantity double 1 Miktar
+40 Quantity2 double 0 Miktar 2
+41 Status string 0
+Open = 2
+Closed = 3
+42 StockId int 0 Stok ID
+43 StockNo string 1 Stok No
+44 TrancCode string 0 Transfer Kodu
+45 Vat Float 1 KDV Oranı (0-1-8-18)
+46 VatInOut boolean 0 KDV Dahil / Hariç (0 / 1)
+47 OrderStatus string 0
+Open = 2
+Closed = 3
+Canceled = 4
+48 ReceiptNo String 1 Fiş No
+49 ReceiptTypeId int 0 Evrak Türü ID bilgisi
+50 SpecCode1 string 0 Özel Kod 1
+51 SpecCode2 string 0 Özel Kod 2
+52 TransCode string 0 Transfer Kodu
+53 TransDate dateTime 1 Belge Tarihi
+ 
+Mert Yazılım Bilgisayar Elektronik Ltd. Şti.
+19
+2.7. AddReceipt Modeli
+<Envelope xmlns="http://schemas.xmlsoap.org/soap/envelope/">
+ <Body>
+ <AddReceipt xmlns="http://tempuri.org/">
+ <!-- Optional -->
+ <newAddReceipt>
+ <ActId xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[int?]</ActId>
+ <ActNo xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</ActNo>
+ <ApiKey xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string]</ApiKey>
+ <BankId xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[int?]</BankId>
+ <BankNo xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</BankNo>
+ <CashId xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[int?]</CashId>
+ <CashNo xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</CashNo>
+ <CompanyId xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[int?]</CompanyId>
+ <Cperiodid xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[int?]</Cperiodid>
+ <CurrCode xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</CurrCode>
+ <CurrExc xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[double?]</CurrExc>
+ <CurrTotal xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[float?]</CurrTotal>
+ <Description xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</Description>
+ <EmployeeId xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[int?]</EmployeeId>
+ <Partcount xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[int?]</Partcount>
+ <ReceiptNo xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string]</ReceiptNo>
+ <Status xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[boolean?]</Status>
+ <Total xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[float]</Total>
+ <TransDate xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</TransDate>
+ <Transtype xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</Transtype>
+ <documenttypeid
+xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[int?]</documenttypeid>
+ <editdate xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</editdate>
+ <edituserid xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[int?]</edituserid>
+ <insertdate xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</insertdate>
+ <insertuserid xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[int?]</insertuserid>
+ </newAddReceipt>
+ </AddReceipt>
+ </Body>
+</Envelope>
+Parametre Tip Zorunlu =1
+Zorunlu değil=0 Açıklama
+1 ActId int 0 Sysmond “Cari Kart ID” bilgisidir.
+2 ActNo string 1
+Gönderilecek irsaliyedeki “Cari No”
+bilgisidir.
+3 ApiKey string 1 Sysmond lisans numarası
+4 BankId int 0 Banka ID bilgisi
+5 BankNo string 1 Banka No
+6 CashId int 0 Kasa ID bilgisi
+7 CashNo string 1 Kasa No
+8 CompanyId int 0 Veri gönderilen şirketin ID bilgisi
+9 CperiodId int 0 Veri gönderilen Dönem ID bilgisi
+10 CurrCode string 1 Para Birimi (TL – EUR - USD – GBP - JPY)
+Mert Yazılım Bilgisayar Elektronik Ltd. Şti.
+20
+11 CurrExc double 1 Döviz kuru
+12 CurrTotal float 1 Döviz Tutar
+13 Description string 0 Açıklama
+14 EmployeeId int 0 Personel ID
+15 Partcount int 0 Taksit Sayısı
+16 ReceiptNo string 1 Fiş No
+17 Status boolean 0
+Open = 2
+Closed = 3
+18 Total float 1 Tutar
+19 TransDate string 1 Belge Tarihi
+20 TransType string 1
+NakitTahsilat = 406
+NakitOdeme = 403
+GelenHavale = 407
+GidenHavale = 404
+KKartiTahsilat = 605
+KKartiOdeme = 606
+21 ducumentTypeId int 0 Evrak Türü ID Bilgisi
+22 EditDate string 0 Düzenleme tarihi
+23 EditUserId int 0 Düzenleme yapan personel ID bilgisi
+24 InsertDate string 0 Kayıt tarihi
+25 InsertUserId int 0 Kayıt eden personel ID bilgisi
+Mert Yazılım Bilgisayar Elektronik Ltd. Şti.
+21
+2.8. AddStockCard Modeli
+<Envelope xmlns="http://schemas.xmlsoap.org/soap/envelope/">
+ <Body>
+ <AddStockCard xmlns="http://tempuri.org/">
+ <!-- Optional -->
+ <newStockCard>
+ <ApiKey xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string]</ApiKey>
+ <Brand xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</Brand>
+ <CompanyId xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[int?]</CompanyId>
+ <CurrCode xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</CurrCode>
+ <Description xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</Description>
+ <GroupCode xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</GroupCode>
+ <Model xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</Model>
+ <Season xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</Season>
+ <Speccode1 xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</Speccode1>
+ <Speccode10 xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</Speccode10>
+ <Speccode2 xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</Speccode2>
+ <Speccode3 xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</Speccode3>
+ <Speccode4 xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</Speccode4>
+ <Speccode5 xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</Speccode5>
+ <Speccode6 xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</Speccode6>
+ <Speccode7 xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</Speccode7>
+ <Speccode8 xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</Speccode8>
+ <Speccode9 xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</Speccode9>
+ <Status xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</Status>
+ <!-- Optional -->
+ <StockBarcode xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">
+ <!-- Optional -->
+ <StockCardBarcodeItem>
+ <Barcode>[string]</Barcode>
+ <BarcodeType>[string]</BarcodeType>
+ </StockCardBarcodeItem>
+ </StockBarcode>
+ <!-- Optional -->
+ <StockCardPrice xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">
+ <!-- Optional -->
+ <StockCardPriceItem>
+ <CurrCode>[string?]</CurrCode>
+ <Price>[double]</Price>
+ <StockPriceTypeNo>[string]</StockPriceTypeNo>
+ </StockCardPriceItem>
+ </StockCardPrice>
+ <StockName xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string]</StockName>
+ <StockName2 xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</StockName2>
+ <StockNo xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string]</StockNo>
+ <UnitName xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string]</UnitName>
+ <VatPurchase xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[int?]</VatPurchase>
+ <VatSales xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[int?]</VatSales>
+ </newStockCard>
+ </AddStockCard>
+Mert Yazılım Bilgisayar Elektronik Ltd. Şti.
+22
+ </Body>
+</Envelope>
+Parametre Tip Zorunlu =1
+Zorunlu değil=0 Açıklama
+1 Apikey string 1 Sysmond lisans numarası
+2 Brand string 0 Marka
+3 CompanyId int 0 Veri gönderilen şirketin ID bilgisi
+4 CurrCode string 1 Para Birimi (TL – EUR - USD – GBP - JPY)
+5 Description string 0 Açıklama
+6 GroupCode string 0 Detay grup kodu
+7 Model string 0 Model
+8 Season string 0 Sezon
+9 Speccode1 string 0 Özel Kod 1
+10 Speccode10 string 0 Özel Kod 10
+11 Speccode2 string 0 Özel Kod 2
+12 Speccode3 string 0 Özel Kod 3
+13 Speccode4 string 0 Özel Kod 4
+14 Speccode5 string 0 Özel Kod 5
+15 Speccode6 string 0 Özel Kod 6
+16 Speccode7 string 0 Özel Kod 7
+17 Speccode8 string 0 Özel Kod 8
+18 Speccode9 string 0 Özel Kod 9
+19 Status string 0
+Open = 2
+Closed = 3
+StockCardBarcodeItem
+20 Barcode string 0 Barkod No
+21 BarcodeType string 1
+EAN8 = 1
+EAN13 = 2
+PLU = 3
+TARTILI = 4
+DİGER = 5
+TARTILIADET = 6
+StockCardBarcodeItem
+StockCardPriceItem
+22 CurrCode string 1 Para Birimi (TL – EUR - USD – GBP - JPY)
+23 Price double 0 Fiyat
+24 StockPriceTypeNo string 1 Stok Fiyat Tipi
+StockCardPriceItem
+25 StockName string 1 Stok Adı
+26 StockName2 string 0 Stok Adı 2
+27 StockNo string 1 Stok No
+28 UnitName int 1 Birim Adı
+29 VatPurchase int 0 Alış KDV Oranı
+
+ 
+Mert Yazılım Bilgisayar Elektronik Ltd. Şti.
+23
+2.9. AddStockTransRec Modeli
+<Envelope xmlns="http://schemas.xmlsoap.org/soap/envelope/">
+ <Body>
+ <AddStockTransRec xmlns="http://tempuri.org/">
+ <!-- Optional -->
+ <newStockTransRec>
+ <ApiKey xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string]</ApiKey>
+ <CompanyId xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[int?]</CompanyId>
+ <Cperiodid xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[int?]</Cperiodid>
+ <Description xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</Description>
+ <EmployeeNo xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</EmployeeNo>
+ <QExitDepotId xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[int?]</QExitDepotId>
+ <QExitDepotNo
+xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</QExitDepotNo>
+ <QentryDepotId
+xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[int?]</QentryDepotId>
+ <QentryDepotNo
+xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</QentryDepotNo>
+ <ReceiptNo xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string]</ReceiptNo>
+ <ReceiptTypeId
+xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[double?]</ReceiptTypeId>
+ <StockTransRecItemList xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">
+ <!-- Optional -->
+ <StockTransRecItem>
+ <CurrCode>[string?]</CurrCode>
+ <CurrExc>[double?]</CurrExc>
+ <Description>[string?]</Description>
+ <GradeId>[int?]</GradeId>
+ <LotId>[int?]</LotId>
+ <LotNo>[string?]</LotNo>
+ <Price>[double?]</Price>
+ <QExitDepotId>[int?]</QExitDepotId>
+ <QExitDepotNo>[string]</QExitDepotNo>
+ <QentryDepotId>[int?]</QentryDepotId>
+ <QentryDepotNo>[string]</QentryDepotNo>
+ <Quantity>[double]</Quantity>
+ <Quantity2>[double?]</Quantity2>
+ <Quantity3>[double?]</Quantity3>
+ <StockId>[int?]</StockId>
+ <StockNo>[string]</StockNo>
+ </StockTransRecItem>
+ </StockTransRecItemList>
+ <StockTransRecStatus
+xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</StockTransRecStatus>
+ <TransDate xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string]</TransDate>
+ </newStockTransRec>
+ </AddStockTransRec>
+ </Body>
+</Envelope>
+Mert Yazılım Bilgisayar Elektronik Ltd. Şti.
+24
+Parametre Tip Zorunlu =1
+Zorunlu değil=0 Açıklama
+1 ApiKey string 1 Sysmond lisans numarası
+2 CompanyId int 0 Veri gönderilen şirketin ID bilgisi
+3 CperiodId int 0 Veri gönderilen Dönem ID bilgisi
+4 Description string 0 Açıklama
+5 EmployeeNo string 0 Personel No
+6 QExitDepotId int 0 Çıkış Depo ID
+7 QExitDeporNo string 1 Çıkış Depo No
+8 QentryDeporId int 0 Giriş Depo ID
+9 QentryDepotNo string 1 Giriş Depo No
+10 ReceiptNo string 1 Fiş No
+11 ReceiptTypeId double 0 Evrak Türü ID Bilgisi
+STOCKTRANSREC Transfer Fişi Datay Bilgileri
+12 CurrCode string 1 Para Birimi (TL – EUR - USD – GBP - JPY)
+13 CurrExc double 1 Döviz kuru
+14 Description string 0 Açıklama
+15 GradeId int 0 Nitelik ID bilgisi
+16 LotId int 0 Stok Lot ID bilgisi
+17 LotNo string 0 Lot Numarası
+18 Price double 1 Fiyat
+19 QExitDepotId int 0 Çıkış Depo ID
+20 QExitDepotNo string 1 Çıkış Depo No
+21 QentryDepotId int 0 Giriş Depo ID
+22 QentryDepotNo string 1 Giriş Depo No
+23 Quantity double 1 Miktar
+24 Quantity2 double 0 Miktar 2
+25 Quantity3 double 0 Miktar 3
+26 StockId int 0 Stok ID bilgisi
+27 StocNo string 1 Stok No
+28 StockTransRecStatus string 0
+Open = 2
+Closed = 3
+29 TransDate string 1 Belge Tarihi
+
+ 
+Mert Yazılım Bilgisayar Elektronik Ltd. Şti.
+25
+2.10.AddWorker Modeli
+<Envelope xmlns="http://schemas.xmlsoap.org/soap/envelope/">
+ <Body>
+ <AddWorker xmlns="http://tempuri.org/">
+ <!-- Optional -->
+ <newworkpro>
+ <ApiKey xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string]</ApiKey>
+ <CompanyId xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[int?]</CompanyId>
+ <Cperiodid xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[int?]</Cperiodid>
+ <DepotNo xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string]</DepotNo>
+ <Description xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</Description>
+ <EmployeeNo xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</EmployeeNo>
+ <GradeName xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</GradeName>
+ <LossDepotNo
+xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</LossDepotNo>
+ <LossGradeName
+xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</LossGradeName>
+ <LossQuantity
+xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[double?]</LossQuantity>
+ <LossStokcNo xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</LossStokcNo>
+ <LotNo xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string]</LotNo>
+ <Quantity xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[double]</Quantity>
+ <ReceiptNo xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string]</ReceiptNo>
+ <StockNo xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string]</StockNo>
+ <TransDate xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[dateTime]</TransDate>
+ <WorkProItemList xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">
+ <!-- Optional -->
+ <WorkProModelItem>
+ <Description>[string?]</Description>
+ <GradeName>[string?]</GradeName>
+ <LossDepotNo>[string?]</LossDepotNo>
+ <LossGradeName>[string?]</LossGradeName>
+ <LossQuantity>[double?]</LossQuantity>
+ <LossStockNo>[string?]</LossStockNo>
+ <LotNo>[string?]</LotNo>
+ <Quantity>[double?]</Quantity>
+ <Quantity2>[double?]</Quantity2>
+ <Quantity3>[double?]</Quantity3>
+ <StockNo>[string?]</StockNo>
+ <currdate>[dateTime?]</currdate>
+ </WorkProModelItem>
+ </WorkProItemList>
+ <currcode xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</currcode>
+ <currdate xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[dateTime?]</currdate>
+ </newworkpro>
+ </AddWorker>
+ </Body>
+</Envelope>
+Mert Yazılım Bilgisayar Elektronik Ltd. Şti.
+26
+Parametre Tip Zorunlu =1
+Zorunlu değil=0 Açıklama
+1 ApiKey string 1 Sysmond lisans numarası
+2 CompanyId int 0 Veri gönderilen şirketin ID bilgisi
+3 CperiodId int 0 Veri gönderilen Dönem ID bilgisi
+4 DepotNo string 1 Depo No
+5 Description string 0 Açıklama
+6 EmployeeNo string 0 Personel No
+7 GradeName string 0 Nitelik Adı
+8 LossDepotNo string 0 Fire Depo No
+9 LossGradeName string 0 Fire Nitelik Adı
+10 LossQuantıty double 0 Fire Miktarı
+11 LossStockNo string 0 Fira Stok No
+12 LotNo string 0 Lot Numarası
+13 Quantity double 1 Miktar
+14 ReceiptNo string 1 Fiş No
+15 StockNo string 1 Stok No
+16 TransDate dateTime 1 Belge Tarihi
+17 Description string 0 Açıklama
+18 GradeName string 0 Nitelik Adı
+19 LossDepotNo string 0 Fire Depo No
+20 LossGradeName string 0 Fire Nitelik Adı
+21 LossQuantity double 0 Fire Miktarı
+22 LossStockNo string 0 Fire Stok No
+23 LotNo string 0 Lot Numarası
+24 Quantity double 1 Miktar
+25 Quantity2 double 0 Miktar 2
+26 Quantity3 double 0 Miktar 3
+27 StockNo String 1 Stok No
+28 CurrDate dateTime 0 Kur Tarihi
+29 CurrCode string 1 Para Birimi (TL – EUR - USD – GBP - JPY)
+ 
+Mert Yazılım Bilgisayar Elektronik Ltd. Şti.
+27
+2.11.ChekKart
+Bu Fonksiyon Stok, Cari, Gelir / Gider kartlarının Sysmond veri tabanında kayıtlı olup olmadığını sorgulamak için kullanılır.
+<Envelope xmlns="http://schemas.xmlsoap.org/soap/envelope/">
+ <Body>
+ <ChekKart xmlns="http://tempuri.org/">
+ <CardTipi>[string?]</CardTipi>
+ <NO>[string?]</NO>
+ <SirketId>[int?]</SirketId>
+ </ChekKart>
+ </Body>
+</Envelope>
+Parametre Tip Zorunlu =1
+Zorunlu değil=0 Açıklama
+1 CardTipi string 1 STOCK (stok), ACT(cari), EXPREV(GelirGider)
+2 NO string 1 Sorgulanmak istenen kayıt numarası
+3 SirketId int 1 Veri gönderilen şirketin ID bilgisi
+ 
+Mert Yazılım Bilgisayar Elektronik Ltd. Şti.
+28
+2.12.GetObject Modeli
+Bu fonksiyon, gönderilen SQL Sorgusunun verilerini json formatında geriye döndürür.
+<Envelope xmlns="http://schemas.xmlsoap.org/soap/envelope/">
+ <Body>
+ <GetObject xmlns="http://tempuri.org/">
+ <Query>[string?]</Query>
+ <Sirketid>[int?]</Sirketid>
+ <Donemid>[int?]</Donemid>
+ <ApiKey>[string?]</ApiKey>
+ </GetObject>
+ </Body>
+</Envelope>
+Parametre Tip Zorunlu =1
+Zorunlu değil=0 Açıklama
+1 Query string 1 SQL Sorgusu
+2 SirketId int 0 Veri gönderilen şirketin ID bilgisi
+3 SDonemId int 0 Veri gönderilen Dönem ID bilgisi
+4 ApiKey string 1 Sysmond lisans numarası
+ 
+Mert Yazılım Bilgisayar Elektronik Ltd. Şti.
+29
+2.13.OrderCancel Modeli
+Bu fonksiyon sipariş iptali için kullanılır.
+<Envelope xmlns="http://schemas.xmlsoap.org/soap/envelope/">
+ <Body>
+ <OrderCancel xmlns="http://tempuri.org/">
+ <value>[string?]</value>
+ <SirketId>[int?]</SirketId>
+ <DonemId>[int?]</DonemId>
+ </OrderCancel>
+ </Body>
+</Envelope>
+Parametre Tip Zorunlu =1
+Zorunlu değil=0 Açıklama
+1 Value string 1 Fiş No
+2 SirketId int 0 Veri gönderilen şirketin ID bilgisi
+3 SDonemId int 0 Veri gönderilen Dönem ID bilgisi
+Mert Yazılım Bilgisayar Elektronik Ltd. Şti.
+30
+2.14.AddOffer Modeli
+<Envelope xmlns="http://schemas.xmlsoap.org/soap/envelope/">
+ <Body>
+ <AddOffer xmlns="http://tempuri.org/">
+ <!-- Optional -->
+ <newOffer>
+ <ActNo xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string]</ActNo>
+ <!-- Optional -->
+ <Address xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">
+ <Address1>[string?]</Address1>
+ <Address2>[string?]</Address2>
+ <Address3>[string?]</Address3>
+ <AddressType>[string?]</AddressType>
+ <City>[string?]</City>
+ <Country>[string?]</Country>
+ <Email>[string?]</Email>
+ <Gsm>[string?]</Gsm>
+ <Phone1>[string?]</Phone1>
+ <PostalCode>[string?]</PostalCode>
+ <Town>[string?]</Town>
+ <Web>[string?]</Web>
+ </Address>
+ <ApiKey xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string]</ApiKey>
+ <CompanyId xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[int?]</CompanyId>
+ <Cperiodid xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[int?]</Cperiodid>
+ <CurrCode xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</CurrCode>
+ <CurrExc xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[double?]</CurrExc>
+ <DepotNo xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</DepotNo>
+ <Description xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</Description>
+ <EmployeeNo xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</EmployeeNo>
+ <KeyField xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</KeyField>
+ <OfferItemList xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">
+ <!-- Optional -->
+ <OfferItem>
+ <CurrCode>[string?]</CurrCode>
+ <CurrExc>[double?]</CurrExc>
+ <DeliveredQuantity>[double?]</DeliveredQuantity>
+ <DeliveryDate>[dateTime?]</DeliveryDate>
+ <Description>[string?]</Description>
+ <Discount1>[float?]</Discount1>
+ <Discount2>[float?]</Discount2>
+ <Discount3>[float?]</Discount3>
+ <Discount4>[float?]</Discount4>
+ <Discount5>[float?]</Discount5>
+ <Discount6>[float?]</Discount6>
+ <Price>[double?]</Price>
+ <Quantity>[double]</Quantity>
+ <Quantity2>[double?]</Quantity2>
+ <Status>[string?]</Status>
+ <StockId>[int?]</StockId>
+ <StockNo>[string]</StockNo>
+ <Vat>[float?]</Vat>
+ <VatInOut>[boolean?]</VatInOut>
+ </OfferItem>
+ </OfferItemList>
+ <OfferStatus xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</OfferStatus>
+ <ReceiptNo xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string]</ReceiptNo>
+ <ReceiptTypeId xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[int?]</ReceiptTypeId>
+ <TransCode xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</TransCode>
+ <TransDate xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[dateTime]</TransDate>
+ </newOffer>
+ </AddOffer>
+Mert Yazılım Bilgisayar Elektronik Ltd. Şti.
+31
+ </Body>
+</Envelope>
+Parametre Tip Zorunlu =1
+Zorunlu değil=0 Açıklama
+1 ActNo string 1
+Gönderilecek irsaliyedeki “Cari No”
+bilgisidir.
+Address Adresler
+2 Address1 string 0 Carinin Adres bilgisi 1
+3 Address2 string 0 Carinin Adres bilgisi 2
+4 Address3 string 0 Carinin Adres bilgisi 3
+5 AddressType string 0
+Business = 3000,
+Home = 3001,
+Invoice = 3002,
+Delivery = 3004,
+Other = 3005
+6 City string 0 Şehir
+7 Country string 0 Ülke
+8 Email string 0 Email
+9 Gsm string 0 Cep Telefon Numarası
+10 Phone1 string 0 Telefon 1
+11 PostalCode string 0 Posta Kodu
+12 Town string 0 İlçe
+13 Web string 0 Web Adresi
+Address Adresler son
+14 ApiKey string 1 Sysmond lisans numarası
+15 CompanyId int 0 Veri gönderilen şirketin ID bilgisi
+16 CPeriodId int 0 Veri gönderilen Dönem ID bilgisi
+17 CurrCode string 1 Para Birimi (TL – EUR - USD – GBP - JPY)
+18 CurrExc double 1 Döviz kuru
+19 DepotNo string 1 Depo No
+20 Description string 0 Açıklama
+21 EmployeeNo string 0 Personel No
+22 GroupCode string 0 Detay grup kodu
+23 KeyField string 0 -
+OFFERITEM Teklif detay bilgileri
+24 CurrCode string 1 Para Birimi (TL – EUR - USD – GBP - JPY)
+25 CurrExc double 1 Döviz kuru
+26 DeliveredQuantity double 0 -
+27 DeliveryDate dateTime 0 -
+28 Description string 0 Açıklama
+29 Discount1 float 0 İskonto Oranı 1
+30 Discount2 float 0 İskonto Oranı 2
+31 Discount3 float 0 İskonto Oranı 3
+32 Discount4 float 0 İskonto Oranı 4
+33 Discount5 float 0 İskonto Oranı 5
+34 Discount6 float 0 İskonto Oranı 6
+35 Price double 1 Fiyat
+36 Quantity double 1 Miktar
+37 Quantity2 double 0 Miktar 2
+38 Status string 0
+Open = 2
+Closed = 3
+Mert Yazılım Bilgisayar Elektronik Ltd. Şti.
+32
+39 StockId int 0 Stok ID
+40 StockNo string 1 Stok No
+41 Vat Float 1 KDV Oranı (0-1-8-18)
+42 VatInOut boolean 0 KDV Dahil / Hariç (0 / 1)
+43 OfferStatus string 0
+Open = 2
+Closed = 3
+Canceled = 4
+44 ReceiptNo String 1 Fiş No
+45 ReceiptTypeId int 0 Evrak Türü ID Bilgisi
+46 TransCode string 0 Transfer Kodu
+47 TransDate dateTime 1 Belge Tarihi
+Mert Yazılım Bilgisayar Elektronik Ltd. Şti.
+33
+2.15.GetJsonLotInfo modeli
+<Envelope xmlns="http://schemas.xmlsoap.org/soap/envelope/">
+ <Body>
+ <GetJsonLotInfo xmlns="http://tempuri.org/">
+ <LotId>[int?]</LotId>
+ <GradeId>[int?]</GradeId>
+ <CompanyId>[int?]</CompanyId>
+ <Stockid>[int?]</Stockid>
+ <ApiKey>[string?]</ApiKey>
+ </GetJsonLotInfo>
+ </Body>
+</Envelope>
+Parametre Tip Zorunlu =1
+Zorunlu değil=0 Açıklama
+1 LotId int 0 Lot ID
+2 GradeId int 0 Nitelik ID
+3 CompanyId int 0 Veri gönderilen şirketin ID bilgisi
+4 StockId int 1 Stok ID
+5 ApiKey string 1 Sysmond lisans numarası
+Mert Yazılım Bilgisayar Elektronik Ltd. Şti.
+34
+2.16.GetSevkiyatPlans Modeli
+<Envelope xmlns="http://schemas.xmlsoap.org/soap/envelope/">
+ <Body>
+ <getSevkiyatPlans xmlns="http://tempuri.org/">
+ <StartDate>[string?]</StartDate>
+ <EndDate>[string?]</EndDate>
+ <CompanyId>[int?]</CompanyId>
+ <ActIds>[string?]</ActIds>
+ <ApiKey>[string?]</ApiKey>
+ <mode>[string?]</mode>
+ </getSevkiyatPlans>
+ </Body>
+</Envelope>
+Parametre Tip Zorunlu =1
+Zorunlu değil=0 Açıklama
+1 StartDate string 1 Planlama başlangıç tarihi
+2 EndDate string 1 Planlama bitiş tarihi
+3 CompanyId int 0 Veri gönderilen şirketin ID bilgisi
+4 ActIds string 0
+Sevk yapılacak cari ID bilgileri, virgülle
+ayrılmış gönderilmelidir.
+5 ApiKey string 1 Sysmond lisans numarası
+6 mode string 1
+1 = Sevkiyat yapılacak cari listesini verir.
+2 = Sevkiyat stok listesini verir.
+Mert Yazılım Bilgisayar Elektronik Ltd. Şti.
+35
+2.17.AddSevk Modeli
+<Envelope xmlns="http://schemas.xmlsoap.org/soap/envelope/">
+ <Body>
+ <AddSevk xmlns="http://tempuri.org/">
+ <!-- Optional -->
+ <newSevkModel>
+ <ApiKey xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string]</ApiKey>
+ <BelgeTipi xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[int]</BelgeTipi>
+ <CPeriodId xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[int]</CPeriodId>
+ <CURR xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">
+ <!-- Optional -->
+ <sevkModel.eCURR>
+ <currcode>[string?]</currcode>
+ <currsell>[string?]</currsell>
+ </sevkModel.eCURR>
+ </CURR>
+ <CompanyId xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[int]</CompanyId>
+ <EXTDEPOT xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">
+ <!-- Optional -->
+ <sevkModel.eEXTDEPOT>
+ <DEPOTID>[int?]</DEPOTID>
+ <DEPOTNAME>[string?]</DEPOTNAME>
+ <index>[int?]</index>
+ <!-- Optional -->
+ <stockArr>
+ <!-- Optional -->
+ <sevkModel.StockArr>
+ <BAKIYE>[double?]</BAKIYE>
+ <DEPOTID>[int?]</DEPOTID>
+ <DEPOTNAME>[string?]</DEPOTNAME>
+ <DEPOTNO>[string?]</DEPOTNO>
+ <FOLLOWLOT>[boolean?]</FOLLOWLOT>
+ <GRADEID>[int?]</GRADEID>
+ <GRADENAME>[anyType?]</GRADENAME>
+ <IslenenSevkEdilenMiktar>[double?]</IslenenSevkEdilenMiktar>
+ <STOCKID>[int?]</STOCKID>
+ <STOCKNAME>[string?]</STOCKNAME>
+ <STOCKNO>[string?]</STOCKNO>
+ <SevkEdilenMik>[double?]</SevkEdilenMik>
+ <!-- Optional -->
+ <lotList>
+ <!-- Optional -->
+ <sevkModel.LotList>
+ <BAKIYE>[double?]</BAKIYE>
+ <DEPOTID>[int?]</DEPOTID>
+ <DEPOTNAME>[string?]</DEPOTNAME>
+ <DEPOTNO>[string?]</DEPOTNO>
+ <GRADEID>[int?]</GRADEID>
+ <GRADENAME>[anyType?]</GRADENAME>
+ <IslenenLOTSevkEdilenMik>[double?]</IslenenLOTSevkEdilenMik>
+ <LOTNO>[string?]</LOTNO>
+ <LOTSevkEdilenMik>[string?]</LOTSevkEdilenMik>
+ <STOCKID>[int?]</STOCKID>
+ <STOCKLOTSID>[int?]</STOCKLOTSID>
+ </sevkModel.LotList>
+ </lotList>
+ </sevkModel.StockArr>
+ </stockArr>
+ </sevkModel.eEXTDEPOT>
+ </EXTDEPOT>
+ <RECEIPT xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">
+ <!-- Optional -->
+ <sevkModel.eRECEIPT>
+ <ACTID>[int?]</ACTID>
+Mert Yazılım Bilgisayar Elektronik Ltd. Şti.
+36
+ <DELIVERYDATE>[string?]</DELIVERYDATE>
+ <DESCRIPTION>[string?]</DESCRIPTION>
+ <DQUANTITY>[int?]</DQUANTITY>
+ <FOLLOWLOT>[boolean?]</FOLLOWLOT>
+ <GRADEID>[int?]</GRADEID>
+ <GRADENAME>[anyType?]</GRADENAME>
+ <ORDERDATE>[string?]</ORDERDATE>
+ <QUANTITY>[int?]</QUANTITY>
+ <RECEIPTID>[int?]</RECEIPTID>
+ <SEVKEDILEN>[int?]</SEVKEDILEN>
+ <SEVKMIKTAR>[int?]</SEVKMIKTAR>
+ <SEVKMIKTAR2>[double?]</SEVKMIKTAR2>
+ <SEVKMIKTAR3>[double?]</SEVKMIKTAR3>
+ <STOCKID>[int?]</STOCKID>
+ <STOCKNAME>[string?]</STOCKNAME>
+ <STOCKNO>[string?]</STOCKNO>
+ <TRANSDATE>[string?]</TRANSDATE>
+ <UNITID>[int?]</UNITID>
+ <UNITNAME>[string?]</UNITNAME>
+ </sevkModel.eRECEIPT>
+ </RECEIPT>
+ <SystemDovizi xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[string?]</SystemDovizi>
+ <UserId xmlns="http://schemas.datacontract.org/2004/07/TrexEntegrasyon.WinSvc.Model">[int?]</UserId>
+ </newSevkModel>
+ </AddSevk>
+ </Body>
+</Envelope>
+Parametre Tip Zorunlu =1
+Zorunlu değil=0 Açıklama
+1 ApiKey string Sysmond lisans numarası
+2 BelgeTipi int
+3 CperiodId int Veri gönderilen Dönem ID bilgisi
+4 Currcode string Para Birimi (TL – EUR - USD – GBP -
+JPY)
+5 Currsel string
+6 CompanyId int Veri gönderilen şirketin ID bilgisi
+7 DEPOTID İnt Depo ID
+8 DEPOTNAME String Depo Adı
+9 index İnt
+10 BAKIYE double
+11 DEPOTID İnt Depo ID
+12 DEPOTNAME String Depo Adı
+13 DEPOTNO String Depo No
+14 FOLLOWLOT Boolean
+15 GRADEID İnt Nitelik Id
+16 GRADENAME anyType Nitelik Adı
+17 IstenenSevkEdilenMiktar Double
+18 STOCKID İnt Stok ID
+19 STOCKNAME String Stok Adı
+20 STOCKNO String Stok No
+21 SevkEdilenMik Double
+22 BAKIYE Double
+23 DEPOTID İnt Depo ID
+Mert Yazılım Bilgisayar Elektronik Ltd. Şti.
+37
+24 DEPOTNAME String Depo Adı
+25 DEPOTNO String Depo No
+26 GRADEID İnt Nitelik ID
+27 GRADENAME anyType Nitelik Adı
+28 IstenenLOTSevkEdilenMik Double
+29 LOTNO String Lot Numarası
+30 LOTSevkEdilemMik string
+31 STOCKID İnt Stok ID
+32 STOCKLOTSID İnt Stok Lot ID
+33 ACTID İnt Sysmond “Cari Kart ID” bilgisidir.
