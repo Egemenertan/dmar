@@ -1,7 +1,7 @@
 "use client";
 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { BarChart3, TrendingDown } from 'lucide-react';
+import { BarChart3 } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ChartSkeleton } from './ChartSkeleton';
 
@@ -15,8 +15,16 @@ interface MarketRevenueBarChartProps {
   loading?: boolean;
 }
 
-const CustomTooltip = ({ active, payload, label }: any) => {
-  if (active && payload && payload.length) {
+interface TooltipProps {
+  active?: boolean;
+  payload?: Array<{
+    value: number;
+  }>;
+  label?: string;
+}
+
+const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
+  if (active && payload && payload.length && label) {
     return (
       <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3">
         <p className="text-sm font-medium text-gray-900">

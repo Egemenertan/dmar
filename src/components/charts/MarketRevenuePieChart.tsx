@@ -1,7 +1,7 @@
 "use client";
 
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
-import { PieChart as PieChartIcon, Store } from 'lucide-react';
+import { Store } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ChartSkeleton } from './ChartSkeleton';
 
@@ -28,7 +28,18 @@ const COLORS = [
   '#6b7280', // Gray
 ];
 
-const CustomTooltip = ({ active, payload }: any) => {
+interface TooltipProps {
+  active?: boolean;
+  payload?: Array<{
+    payload: {
+      marketName: string;
+      totalRevenue: number;
+      total: number;
+    };
+  }>;
+}
+
+const CustomTooltip = ({ active, payload }: TooltipProps) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     return (
@@ -48,7 +59,17 @@ const CustomTooltip = ({ active, payload }: any) => {
   return null;
 };
 
-const CustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
+interface LabelProps {
+  cx?: number;
+  cy?: number;
+  midAngle?: number;
+  innerRadius?: number;
+  outerRadius?: number;
+  percent?: number;
+}
+
+const CustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: LabelProps) => {
+  if (!cx || !cy || midAngle === undefined || !innerRadius || !outerRadius || !percent) return null;
   if (percent < 0.05) return null; // Don't show labels for slices smaller than 5%
   
   const RADIAN = Math.PI / 180;
@@ -125,11 +146,15 @@ export default function MarketRevenuePieChart({ data, loading }: MarketRevenuePi
           <Legend 
             verticalAlign="bottom" 
             height={36}
-            formatter={(value, entry: any) => (
-              <span style={{ color: entry.color, fontSize: '12px' }}>
-                {entry.payload.displayName}
-              </span>
-            )}
+            formatter={(value, entry) => {
+              const entryTyped = entry as { color?: string; payload?: { displayName?: string } };
+              const displayName = entryTyped?.payload?.displayName || value;
+              return (
+                <span style={{ color: entryTyped?.color || '#000', fontSize: '12px' }}>
+                  {displayName}
+                </span>
+              );
+            }}
           />
         </PieChart>
       </ResponsiveContainer>

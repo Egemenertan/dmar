@@ -46,8 +46,8 @@ export async function GET(request: NextRequest) {
       } catch (e) {
         console.error("Error parsing market revenue data:", e);
       }
-    } else if (res && (res as any).Message) {
-      console.error("API Error fetching market revenue:", (res as any).Message);
+    } else if (res && typeof res === 'object' && 'Message' in res) {
+      console.error("API Error fetching market revenue:", (res as Record<string, unknown>).Message);
     }
 
     return NextResponse.json(marketRevenue);

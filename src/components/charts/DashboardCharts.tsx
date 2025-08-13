@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+// Removed unused imports useState and useEffect
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TrendingUp, PieChart, BarChart3, Calendar } from 'lucide-react';

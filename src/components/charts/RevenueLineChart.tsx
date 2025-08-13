@@ -1,7 +1,7 @@
 "use client";
 
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { TrendingUp, Calendar, RefreshCw } from 'lucide-react';
+import { TrendingUp } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ChartSkeleton } from './ChartSkeleton';
 
@@ -16,8 +16,16 @@ interface RevenueLineChartProps {
   loading?: boolean;
 }
 
-const CustomTooltip = ({ active, payload, label }: any) => {
-  if (active && payload && payload.length) {
+interface TooltipProps {
+  active?: boolean;
+  payload?: Array<{
+    value: number;
+  }>;
+  label?: string;
+}
+
+const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
+  if (active && payload && payload.length && label) {
     return (
       <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3">
         <p className="text-sm font-medium text-gray-900">{`Tarih: ${label}`}</p>

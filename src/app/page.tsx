@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { DateRange } from "react-day-picker"
 import { addDays, format } from "date-fns"
 
@@ -42,7 +42,7 @@ export default function Home() {
   const [dailyTrend, setDailyTrend] = useState<DailyTrendData[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     if (!date?.from || !date?.to) return;
 
     setLoading(true);
@@ -53,15 +53,14 @@ export default function Home() {
     const startDate = date.from;
     const endDate = date.to;
     const dateRange = [];
-    let currentDate = new Date(startDate);
+    const currentDate = new Date(startDate);
 
     while (currentDate <= endDate) {
       dateRange.push(new Date(currentDate));
       currentDate.setDate(currentDate.getDate() + 1);
     }
 
-    let accumulatedRevenue = 0;
-    let accumulatedOrders = 0;
+    // Removed unused variables accumulatedRevenue and accumulatedOrders
     const accumulatedMarketRevenue: { [key: string]: number } = {};
 
     for (const day of dateRange) {
@@ -77,9 +76,6 @@ export default function Home() {
         const marketData = await marketRes.json();
 
         if (summaryData.totalRevenue > 0) {
-          accumulatedRevenue += summaryData.totalRevenue;
-          accumulatedOrders += summaryData.totalOrders;
-
           setStats(prev => ({
             totalRevenue: prev.totalRevenue + summaryData.totalRevenue,
             totalOrders: prev.totalOrders + summaryData.totalOrders,
@@ -107,11 +103,11 @@ export default function Home() {
       }
     }
     setLoading(false);
-  };
+  }, [date]);
 
   useEffect(() => {
     fetchStats();
-  }, [date]);
+  }, [fetchStats]);
 
   return (
     <div className="space-y-8 p-1">
