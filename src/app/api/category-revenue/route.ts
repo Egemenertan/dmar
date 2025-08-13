@@ -1,6 +1,20 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { format } from 'date-fns';
 
+interface CategoryRevenue {
+  mainCategoryCode: string;
+  mainCategoryName: string;
+  subCategoryCode: string;
+  subCategoryName: string;
+  brand: string | null;
+  itemCount: number;
+  totalQuantity: number;
+  totalRevenue: number;
+  averagePrice: number;
+  categoryCode: string;
+  categoryName: string;
+}
+
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const startDate = searchParams.get('startDate');
@@ -145,7 +159,7 @@ export async function GET(request: NextRequest) {
     const data = await response.json();
     console.log('Category Revenue API - Raw data:', data);
     
-    let categoryRevenue = [];
+    let categoryRevenue: CategoryRevenue[] = [];
 
     if (typeof data === 'string') {
       try {

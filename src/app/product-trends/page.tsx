@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -15,7 +15,6 @@ import {
   BarChart3,
   Filter,
   Search,
-  Star,
   ShoppingCart,
   DollarSign,
   Target
@@ -64,7 +63,7 @@ export default function ProductTrendsPage() {
     }
   }
 
-  const fetchProductTrends = async () => {
+  const fetchProductTrends = useCallback(async () => {
     setLoading(true)
     setError(null)
     
@@ -99,11 +98,11 @@ export default function ProductTrendsPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [sortBy, limit])
 
   useEffect(() => {
     fetchProductTrends()
-  }, [sortBy, limit])
+  }, [fetchProductTrends])
 
   // Filter products based on search and filters
   const filteredProducts = productTrends.filter(product => {

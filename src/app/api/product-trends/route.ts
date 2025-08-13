@@ -1,6 +1,27 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { format } from 'date-fns';
 
+interface ProductTrend {
+  stockId: number | null;
+  productName: string;
+  productCode: string | null;
+  categoryCode: string;
+  categoryName: string;
+  subCategory: string;
+  brand: string;
+  salesCount: number;
+  totalQuantity: number;
+  totalRevenue: number;
+  averagePrice: number;
+  averageQuantityPerSale: number;
+  firstSaleDate: string | null;
+  lastSaleDate: string | null;
+  trendDirection: 'up' | 'down' | 'stable';
+  trendPercentage: number;
+  recentPeriodQuantity: number;
+  previousPeriodQuantity: number;
+}
+
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const startDate = searchParams.get('startDate');
@@ -162,7 +183,7 @@ export async function GET(request: NextRequest) {
     const data = await response.json();
     console.log('Product Trends API - Raw data:', data);
     
-    let productTrends = [];
+    let productTrends: ProductTrend[] = [];
 
     if (typeof data === 'string') {
       try {
@@ -175,7 +196,7 @@ export async function GET(request: NextRequest) {
             const recentQuantity = isToday ? item.last7DaysQuantity : item.recentPeriodQuantity;
             const previousQuantity = isToday ? item.previous7DaysQuantity : item.earlierPeriodQuantity;
             
-            let trendDirection = 'stable';
+            let trendDirection: 'up' | 'down' | 'stable' = 'stable';
             let trendPercentage = 0;
             
             if (previousQuantity > 0) {

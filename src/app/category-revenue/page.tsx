@@ -353,7 +353,7 @@ export default function CategoryRevenuePage() {
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value: any) => [`₺${value.toLocaleString('tr-TR')}`, 'Ciro']} />
+                  <Tooltip formatter={(value: number) => [`₺${value.toLocaleString('tr-TR')}`, 'Ciro']} />
                   <Legend />
                 </RechartsPieChart>
               </ResponsiveContainer>
@@ -380,7 +380,7 @@ export default function CategoryRevenuePage() {
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
                   <YAxis />
-                  <Tooltip formatter={(value: any) => [`₺${value.toLocaleString('tr-TR')}`, 'Ciro']} />
+                  <Tooltip formatter={(value: number) => [`₺${value.toLocaleString('tr-TR')}`, 'Ciro']} />
                   <Bar dataKey="revenue" fill="#8884d8" />
                 </BarChart>
               </ResponsiveContainer>
