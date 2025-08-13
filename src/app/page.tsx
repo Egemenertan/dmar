@@ -60,9 +60,13 @@ export default function Home() {
       currentDate.setDate(currentDate.getDate() + 1);
     }
 
-    // Removed unused variables accumulatedRevenue and accumulatedOrders
+    // Initialize accumulators
+    let totalRevenue = 0;
+    let totalOrders = 0;
     const accumulatedMarketRevenue: { [key: string]: number } = {};
+    const dailyTrendData: DailyTrendData[] = [];
 
+    // Process all days and accumulate data
     for (const day of dateRange) {
       const formattedDate = format(day, 'yyyy-d-M');
       
@@ -76,32 +80,36 @@ export default function Home() {
         const marketData = await marketRes.json();
 
         if (summaryData.totalRevenue > 0) {
-          setStats(prev => ({
-            totalRevenue: prev.totalRevenue + summaryData.totalRevenue,
-            totalOrders: prev.totalOrders + summaryData.totalOrders,
-          }));
+          // Accumulate totals
+          totalRevenue += summaryData.totalRevenue;
+          totalOrders += summaryData.totalOrders;
 
-          setDailyTrend(prev => [...prev, {
+          // Add to daily trend
+          dailyTrendData.push({
             date: format(day, 'dd/MM'),
             revenue: summaryData.totalRevenue,
             orders: summaryData.totalOrders,
-          }]);
+          });
         }
 
         if (Array.isArray(marketData)) {
           marketData.forEach(market => {
             accumulatedMarketRevenue[market.marketName] = (accumulatedMarketRevenue[market.marketName] || 0) + market.totalRevenue;
           });
-
-          setMarketRevenue(Object.entries(accumulatedMarketRevenue).map(([marketName, totalRevenue]) => ({
-            marketName,
-            totalRevenue,
-          })));
         }
       } catch (error) {
         console.error(`Failed to fetch data for ${formattedDate}:`, error);
       }
     }
+
+    // Update all states at once after all data is collected
+    setStats({ totalRevenue, totalOrders });
+    setDailyTrend(dailyTrendData);
+    setMarketRevenue(Object.entries(accumulatedMarketRevenue).map(([marketName, totalRevenue]) => ({
+      marketName,
+      totalRevenue,
+    })));
+    
     setLoading(false);
   }, [date]);
 
