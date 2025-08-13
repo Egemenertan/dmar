@@ -19,7 +19,9 @@ import {
   ChevronLeft,
   Menu,
   ChartLine,
-  LogOut
+  LogOut,
+  PieChart,
+  BarChart2
 } from "lucide-react"
 import { useState } from "react"
 import Image from "next/image"
@@ -40,6 +42,8 @@ export function Sidebar({ className, onItemClick, isMobile }: SidebarProps) {
   const allMenuItems = [
     { icon: LayoutDashboard, label: "Ana Panel", href: "/", badge: null },
     { icon: ChartLine, label: "Feedback Analitik", href: "/feedback-analytics", badge: null },
+    { icon: PieChart, label: "Kategori Raporu", href: "/category-revenue", badge: null },
+    { icon: BarChart2, label: "Ürün Trend Analizi", href: "/product-trends", badge: "Yeni" },
     { icon: Package, label: "Stok Yönetimi", href: "/inventory", badge: null },
     { icon: ShoppingCart, label: "Satışlar", href: "/sales", badge: null },
     { icon: TrendingUp, label: "Raporlar", href: "/reports", badge: null },
