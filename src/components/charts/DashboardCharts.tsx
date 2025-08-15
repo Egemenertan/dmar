@@ -162,7 +162,7 @@ export default function DashboardCharts({ marketRevenue, date, loading, dailyTre
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Toplam Sipariş</CardTitle>
+              <CardTitle className="text-sm font-medium">Toplam Fiş</CardTitle>
               <Hash className="h-4 w-4 text-blue-500" />
             </CardHeader>
             <CardContent>
@@ -170,7 +170,7 @@ export default function DashboardCharts({ marketRevenue, date, loading, dailyTre
                 {marketRevenue.reduce((sum, m) => sum + (m.totalOrders || 0), 0).toLocaleString('tr-TR')}
               </div>
               <p className="text-xs text-muted-foreground">
-                Tüm depolardaki toplam sipariş
+                Tüm depolardaki toplam fiş
               </p>
             </CardContent>
           </Card>

@@ -223,7 +223,7 @@ export default function Home() {
         <Card className="transition-all duration-200 hover:shadow-md border-l-4 border-l-green-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
             <div>
-              <CardTitle className="text-base font-semibold text-foreground">Toplam Sipariş</CardTitle>
+              <CardTitle className="text-base font-semibold text-foreground">Toplam Fiş</CardTitle>
               <p className="text-sm text-muted-foreground">ERENKÖY & COURTYARD</p>
             </div>
             <div className="bg-green-500/10 p-3 rounded-full">
@@ -239,7 +239,7 @@ export default function Home() {
               </div>
             )}
             <p className="text-sm text-muted-foreground mt-2">
-              Seçilen aralıktaki toplam sipariş
+              Seçilen aralıktaki toplam fiş
             </p>
           </CardContent>
         </Card>
@@ -308,7 +308,7 @@ export default function Home() {
                           {market.totalOrders?.toLocaleString('tr-TR') || 0}
                         </span>
                       </div>
-                      <p className="text-xs text-muted-foreground">Toplam Sipariş</p>
+                      <p className="text-xs text-muted-foreground">Toplam Fiş</p>
                     </div>
                     
                     <div className="text-center">
