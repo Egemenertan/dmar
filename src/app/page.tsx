@@ -13,13 +13,17 @@ import {
   DollarSign, 
   ShoppingCart,
   Store,
-  RefreshCw
+  RefreshCw,
+  Calculator,
+  Hash
 } from "lucide-react"
 import DashboardCharts from "@/components/charts/DashboardCharts"
 
 interface MarketRevenue {
   marketName: string;
   totalRevenue: number;
+  totalOrders?: number;
+  averageOrderAmount?: number;
 }
 
 interface DailyTrendData {
@@ -64,6 +68,7 @@ export default function Home() {
     let totalRevenue = 0;
     let totalOrders = 0;
     const accumulatedMarketRevenue: { [key: string]: number } = {};
+    const accumulatedDepotStats: { [key: string]: { totalRevenue: number; totalOrders: number; orderCount: number } } = {};
     const dailyTrendData: DailyTrendData[] = [];
 
     // Process all days and accumulate data
@@ -71,13 +76,15 @@ export default function Home() {
       const formattedDate = format(day, 'yyyy-d-M');
       
       try {
-        const [summaryRes, marketRes] = await Promise.all([
+        const [summaryRes, marketRes, depotStatsRes] = await Promise.all([
           fetch(`/api/summary-stats?startDate=${formattedDate}&endDate=${formattedDate}`),
-          fetch(`/api/market-revenue?startDate=${formattedDate}&endDate=${formattedDate}`)
+          fetch(`/api/market-revenue?startDate=${formattedDate}&endDate=${formattedDate}`),
+          fetch(`/api/depot-stats?startDate=${formattedDate}&endDate=${formattedDate}`)
         ]);
         
         const summaryData = await summaryRes.json();
         const marketData = await marketRes.json();
+        const depotStatsData = await depotStatsRes.json();
 
         if (summaryData.totalRevenue > 0) {
           // Accumulate totals
@@ -97,6 +104,17 @@ export default function Home() {
             accumulatedMarketRevenue[market.marketName] = (accumulatedMarketRevenue[market.marketName] || 0) + market.totalRevenue;
           });
         }
+
+        if (Array.isArray(depotStatsData)) {
+          depotStatsData.forEach(depot => {
+            if (!accumulatedDepotStats[depot.marketName]) {
+              accumulatedDepotStats[depot.marketName] = { totalRevenue: 0, totalOrders: 0, orderCount: 0 };
+            }
+            accumulatedDepotStats[depot.marketName].totalRevenue += depot.totalRevenue || 0;
+            accumulatedDepotStats[depot.marketName].totalOrders += depot.totalOrders || 0;
+            accumulatedDepotStats[depot.marketName].orderCount += depot.totalOrders || 0;
+          });
+        }
       } catch (error) {
         console.error(`Failed to fetch data for ${formattedDate}:`, error);
       }
@@ -105,10 +123,15 @@ export default function Home() {
     // Update all states at once after all data is collected
     setStats({ totalRevenue, totalOrders });
     setDailyTrend(dailyTrendData);
-    setMarketRevenue(Object.entries(accumulatedMarketRevenue).map(([marketName, totalRevenue]) => ({
-      marketName,
-      totalRevenue,
-    })));
+    setMarketRevenue(Object.entries(accumulatedMarketRevenue).map(([marketName, totalRevenue]) => {
+      const depotStats = accumulatedDepotStats[marketName];
+      return {
+        marketName,
+        totalRevenue,
+        totalOrders: depotStats?.totalOrders || 0,
+        averageOrderAmount: depotStats?.totalOrders > 0 ? depotStats.totalRevenue / depotStats.totalOrders : 0,
+      };
+    }));
     
     setLoading(false);
   }, [date]);
@@ -173,7 +196,7 @@ export default function Home() {
       </div>
 
       {/* Stats Cards - Enhanced Design */}
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-3">
         <Card className="transition-all duration-200 hover:shadow-md border-l-4 border-l-blue-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
             <div>
@@ -220,6 +243,29 @@ export default function Home() {
             </p>
           </CardContent>
         </Card>
+        <Card className="transition-all duration-200 hover:shadow-md border-l-4 border-l-purple-500">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+            <div>
+              <CardTitle className="text-base font-semibold text-foreground">Ortalama Sipariş Tutarı</CardTitle>
+              <p className="text-sm text-muted-foreground">ERENKÖY & COURTYARD</p>
+            </div>
+            <div className="bg-purple-500/10 p-3 rounded-full">
+              <Calculator className="h-5 w-5 text-purple-500" />
+            </div>
+          </CardHeader>
+          <CardContent className="pt-0">
+            {loading ? (
+              <div className="text-3xl font-bold text-muted-foreground">Yükleniyor...</div>
+            ) : (
+              <div className="text-3xl font-bold text-foreground">
+                ₺{Math.round(stats.totalOrders > 0 ? stats.totalRevenue / stats.totalOrders : 0).toLocaleString('tr-TR')}
+              </div>
+            )}
+            <p className="text-sm text-muted-foreground mt-2">
+              Ciro / Sipariş Adedi
+            </p>
+          </CardContent>
+        </Card>
       </div>
       
       {/* Market Revenue - Optimized for 2 Depots */}
@@ -252,6 +298,30 @@ export default function Home() {
                       Seçilen aralıktaki toplam ciro
                     </p>
                   </div>
+                  
+                  {/* Additional Statistics */}
+                  <div className="grid grid-cols-2 gap-4 pt-2 border-t">
+                    <div className="text-center">
+                      <div className="flex items-center justify-center gap-1 mb-1">
+                        <Hash className="h-4 w-4 text-blue-500" />
+                        <span className="text-lg font-semibold text-foreground">
+                          {market.totalOrders?.toLocaleString('tr-TR') || 0}
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">Toplam Sipariş</p>
+                    </div>
+                    
+                    <div className="text-center">
+                      <div className="flex items-center justify-center gap-1 mb-1">
+                        <Calculator className="h-4 w-4 text-green-500" />
+                        <span className="text-lg font-semibold text-foreground">
+                          ₺{Math.round(market.averageOrderAmount || 0).toLocaleString('tr-TR')}
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">Ort. Sipariş Tutarı</p>
+                    </div>
+                  </div>
+                  
                   <div className="pt-2 border-t">
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">Market Performansı</span>

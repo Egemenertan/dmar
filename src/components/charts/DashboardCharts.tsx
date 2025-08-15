@@ -3,7 +3,7 @@
 // Removed unused imports useState and useEffect
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { TrendingUp, PieChart, BarChart3, Calendar } from 'lucide-react';
+import { TrendingUp, PieChart, BarChart3, Calendar, Calculator, Hash } from 'lucide-react';
 import { format } from 'date-fns';
 import { DateRange } from 'react-day-picker';
 
@@ -14,6 +14,8 @@ import MarketRevenueBarChart from './MarketRevenueBarChart';
 interface MarketRevenue {
   marketName: string;
   totalRevenue: number;
+  totalOrders?: number;
+  averageOrderAmount?: number;
 }
 
 interface DailyTrendData {
@@ -112,7 +114,7 @@ export default function DashboardCharts({ marketRevenue, date, loading, dailyTre
 
       {/* Stats Summary */}
       {marketRevenue.length > 0 && (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">En Yüksek Ciro</CardTitle>
@@ -154,6 +156,41 @@ export default function DashboardCharts({ marketRevenue, date, loading, dailyTre
               </div>
               <p className="text-xs text-muted-foreground">
                 Satış yapan market sayısı
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Toplam Sipariş</CardTitle>
+              <Hash className="h-4 w-4 text-blue-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {marketRevenue.reduce((sum, m) => sum + (m.totalOrders || 0), 0).toLocaleString('tr-TR')}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Tüm depolardaki toplam sipariş
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Ort. Sipariş Tutarı</CardTitle>
+              <Calculator className="h-4 w-4 text-indigo-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                ₺{Math.round(
+                  marketRevenue.reduce((sum, m) => sum + (m.totalOrders || 0), 0) > 0
+                    ? marketRevenue.reduce((sum, m) => sum + m.totalRevenue, 0) / 
+                      marketRevenue.reduce((sum, m) => sum + (m.totalOrders || 0), 0)
+                    : 0
+                ).toLocaleString('tr-TR')}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Genel ortalama sipariş tutarı
               </p>
             </CardContent>
           </Card>
