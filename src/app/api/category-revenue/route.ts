@@ -79,6 +79,7 @@ export async function GET(request: NextRequest) {
        LEFT JOIN VE_STOCK s ON ii.STOCKID = s.STOCKID
        WHERE i.TRANSDATE = convert(date, GETDATE())
          AND s.STOCKID IS NOT NULL
+         AND i.DEPOTID IN (24, 25)
        GROUP BY s.GROUPCODE, s.SPECCODE1, s.SPECCODE2
        ORDER BY totalRevenue DESC`
     : `SELECT 
@@ -128,6 +129,7 @@ export async function GET(request: NextRequest) {
        LEFT JOIN VE_STOCK s ON ii.STOCKID = s.STOCKID
        WHERE i.TRANSDATE BETWEEN '${startDate}' AND '${endDate}'
          AND s.STOCKID IS NOT NULL
+         AND i.DEPOTID IN (24, 25)
        GROUP BY s.GROUPCODE, s.SPECCODE1, s.SPECCODE2
        ORDER BY totalRevenue DESC`;
 

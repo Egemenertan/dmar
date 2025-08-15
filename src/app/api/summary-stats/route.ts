@@ -14,12 +14,12 @@ export async function GET(request: NextRequest) {
   const isToday = startDate === today && endDate === today;
 
   const revenueQuery = isToday 
-    ? `SELECT ISNULL(SUM(TOTAL), 0) AS TotalRevenue FROM VE_INVOICE WHERE TRANSDATE = convert(date, GETDATE())`
-    : `SELECT ISNULL(SUM(TOTAL), 0) AS TotalRevenue FROM VE_INVOICE WHERE TRANSDATE BETWEEN '${startDate}' AND '${endDate}'`;
+    ? `SELECT ISNULL(SUM(TOTAL), 0) AS TotalRevenue FROM VE_INVOICE WHERE TRANSDATE = convert(date, GETDATE()) AND DEPOTID IN (24, 25)`
+    : `SELECT ISNULL(SUM(TOTAL), 0) AS TotalRevenue FROM VE_INVOICE WHERE TRANSDATE BETWEEN '${startDate}' AND '${endDate}' AND DEPOTID IN (24, 25)`;
 
   const ordersQuery = isToday
-    ? `SELECT COUNT(*) AS TotalOrders FROM VE_INVOICE WHERE TRANSDATE = convert(date, GETDATE())`
-    : `SELECT COUNT(*) AS TotalOrders FROM VE_INVOICE WHERE TRANSDATE BETWEEN '${startDate}' AND '${endDate}'`;
+    ? `SELECT COUNT(*) AS TotalOrders FROM VE_INVOICE WHERE TRANSDATE = convert(date, GETDATE()) AND DEPOTID IN (24, 25)`
+    : `SELECT COUNT(*) AS TotalOrders FROM VE_INVOICE WHERE TRANSDATE BETWEEN '${startDate}' AND '${endDate}' AND DEPOTID IN (24, 25)`;
   
   try {
     const [revenueRes, ordersRes] = await Promise.all([

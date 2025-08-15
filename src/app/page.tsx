@@ -172,50 +172,93 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Toplam Ciro</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+      {/* Stats Cards - Enhanced Design */}
+      <div className="grid gap-6 md:grid-cols-2">
+        <Card className="transition-all duration-200 hover:shadow-md border-l-4 border-l-blue-500">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+            <div>
+              <CardTitle className="text-base font-semibold text-foreground">Toplam Ciro</CardTitle>
+              <p className="text-sm text-muted-foreground">ERENKÖY & COURTYARD</p>
+            </div>
+            <div className="bg-blue-500/10 p-3 rounded-full">
+              <DollarSign className="h-5 w-5 text-blue-500" />
+            </div>
           </CardHeader>
-          <CardContent>
-            {loading ? <div className="text-2xl font-bold">Yükleniyor...</div> : <div className="text-2xl font-bold">₺{stats.totalRevenue.toLocaleString('tr-TR')}</div>}
-            <p className="text-xs text-muted-foreground">
+          <CardContent className="pt-0">
+            {loading ? (
+              <div className="text-3xl font-bold text-muted-foreground">Yükleniyor...</div>
+            ) : (
+              <div className="text-3xl font-bold text-foreground">
+                ₺{stats.totalRevenue.toLocaleString('tr-TR')}
+              </div>
+            )}
+            <p className="text-sm text-muted-foreground mt-2">
               Seçilen aralıktaki toplam ciro
             </p>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Toplam Sipariş</CardTitle>
-            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+        <Card className="transition-all duration-200 hover:shadow-md border-l-4 border-l-green-500">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+            <div>
+              <CardTitle className="text-base font-semibold text-foreground">Toplam Sipariş</CardTitle>
+              <p className="text-sm text-muted-foreground">ERENKÖY & COURTYARD</p>
+            </div>
+            <div className="bg-green-500/10 p-3 rounded-full">
+              <ShoppingCart className="h-5 w-5 text-green-500" />
+            </div>
           </CardHeader>
-          <CardContent>
-            {loading ? <div className="text-2xl font-bold">Yükleniyor...</div> : <div className="text-2xl font-bold">{stats.totalOrders}</div>}
-            <p className="text-xs text-muted-foreground">
+          <CardContent className="pt-0">
+            {loading ? (
+              <div className="text-3xl font-bold text-muted-foreground">Yükleniyor...</div>
+            ) : (
+              <div className="text-3xl font-bold text-foreground">
+                {stats.totalOrders.toLocaleString('tr-TR')}
+              </div>
+            )}
+            <p className="text-sm text-muted-foreground mt-2">
               Seçilen aralıktaki toplam sipariş
             </p>
           </CardContent>
         </Card>
       </div>
       
-      {/* Market Revenue */}
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+      {/* Market Revenue - Optimized for 2 Depots */}
+      <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
         {loading ? (
-          <p>Yükleniyor...</p>
+          <div className="col-span-full text-center py-8">
+            <p className="text-lg text-muted-foreground">Yükleniyor...</p>
+          </div>
         ) : (
           marketRevenue.map((market) => (
-            <Card key={market.marketName}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{market.marketName.replace('DEPO', '').trim()}</CardTitle>
-                <Store className="h-4 w-4 text-muted-foreground" />
+            <Card key={market.marketName} className="transition-all duration-200 hover:shadow-lg border-2">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+                <div>
+                  <CardTitle className="text-lg font-semibold text-primary">
+                    {market.marketName.replace('DEPO', '').trim()}
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground mt-1">Market Şubesi</p>
+                </div>
+                <div className="bg-primary/10 p-3 rounded-full">
+                  <Store className="h-6 w-6 text-primary" />
+                </div>
               </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">₺{market.totalRevenue.toLocaleString('tr-TR')}</div>
-                <p className="text-xs text-muted-foreground">
-                  Seçilen aralıktaki toplam ciro
-                </p>
+              <CardContent className="pt-0">
+                <div className="space-y-4">
+                  <div>
+                    <div className="text-3xl font-bold text-foreground">
+                      ₺{market.totalRevenue.toLocaleString('tr-TR')}
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Seçilen aralıktaki toplam ciro
+                    </p>
+                  </div>
+                  <div className="pt-2 border-t">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Market Performansı</span>
+                      <span className="text-green-600 font-medium">Aktif</span>
+                    </div>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           ))

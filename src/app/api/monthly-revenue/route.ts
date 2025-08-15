@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
   const startDate = `${year}-${month.toString().padStart(2, '0')}-01`;
   const endDate = new Date(year, month, 0).toISOString().split('T')[0];
   
-  const query = `SELECT ISNULL(SUM(TOTAL), 0) AS MonthlyRevenue FROM VE_INVOICE WHERE TRANSDATE BETWEEN '${startDate}' AND '${endDate}'`;
+  const query = `SELECT ISNULL(SUM(TOTAL), 0) AS MonthlyRevenue FROM VE_INVOICE WHERE TRANSDATE BETWEEN '${startDate}' AND '${endDate}' AND DEPOTID IN (24, 25)`;
 
   try {
     const response = await fetch('http://46.30.179.216:8640/TrexIntegrationService/REST/GetJson', {

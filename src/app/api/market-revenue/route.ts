@@ -20,6 +20,7 @@ export async function GET(request: NextRequest) {
         FROM VE_INVOICE i
         JOIN VE_DEPOT d ON i.DEPOTID = d.DEPOTID
         WHERE i.TRANSDATE = convert(date, GETDATE())
+          AND i.DEPOTID IN (24, 25)
         GROUP BY d.DEPOTNAME`
     : `SELECT
           d.DEPOTNAME AS marketName,
@@ -27,6 +28,7 @@ export async function GET(request: NextRequest) {
         FROM VE_INVOICE i
         JOIN VE_DEPOT d ON i.DEPOTID = d.DEPOTID
         WHERE i.TRANSDATE BETWEEN '${startDate}' AND '${endDate}'
+          AND i.DEPOTID IN (24, 25)
         GROUP BY d.DEPOTNAME`;
 
   try {

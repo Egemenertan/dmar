@@ -80,6 +80,7 @@ export async function GET(request: NextRequest) {
           WHERE ii2.STOCKID = s.STOCKID 
           AND i2.TRANSDATE >= DATEADD(DAY, -7, GETDATE())
           AND i2.TRANSDATE < GETDATE()
+          AND i2.DEPOTID IN (24, 25)
          ) AS last7DaysQuantity,
          (SELECT ISNULL(SUM(ii3.QUANTITY), 0) 
           FROM VE_INVOICE i3 
@@ -87,6 +88,7 @@ export async function GET(request: NextRequest) {
           WHERE ii3.STOCKID = s.STOCKID 
           AND i3.TRANSDATE >= DATEADD(DAY, -14, GETDATE())
           AND i3.TRANSDATE < DATEADD(DAY, -7, GETDATE())
+          AND i3.DEPOTID IN (24, 25)
          ) AS previous7DaysQuantity
        FROM VE_INVOICE i
        LEFT JOIN INVOICEITEM ii ON i.RECEIPTID = ii.RECEIPTID
@@ -94,6 +96,7 @@ export async function GET(request: NextRequest) {
        WHERE i.TRANSDATE = convert(date, GETDATE())
          AND s.STOCKID IS NOT NULL
          AND ii.QUANTITY > 0
+         AND i.DEPOTID IN (24, 25)
        GROUP BY s.STOCKID, s.STOCKNAME, s.GROUPCODE, s.SPECCODE1, s.SPECCODE2, s.STOCKNO
        ORDER BY ${sortBy === 'revenue' ? 'totalRevenue' : sortBy === 'frequency' ? 'salesCount' : 'totalQuantity'} DESC`
     : `SELECT TOP ${limit}
@@ -137,6 +140,7 @@ export async function GET(request: NextRequest) {
           WHERE ii2.STOCKID = s.STOCKID 
           AND i2.TRANSDATE >= DATEADD(DAY, -DATEDIFF(DAY, '${startDate}', '${endDate}')/2, '${endDate}')
           AND i2.TRANSDATE <= '${endDate}'
+          AND i2.DEPOTID IN (24, 25)
          ) AS recentPeriodQuantity,
          (SELECT ISNULL(SUM(ii3.QUANTITY), 0) 
           FROM VE_INVOICE i3 
@@ -144,6 +148,7 @@ export async function GET(request: NextRequest) {
           WHERE ii3.STOCKID = s.STOCKID 
           AND i3.TRANSDATE >= '${startDate}'
           AND i3.TRANSDATE < DATEADD(DAY, -DATEDIFF(DAY, '${startDate}', '${endDate}')/2, '${endDate}')
+          AND i3.DEPOTID IN (24, 25)
          ) AS earlierPeriodQuantity
        FROM VE_INVOICE i
        LEFT JOIN INVOICEITEM ii ON i.RECEIPTID = ii.RECEIPTID
@@ -151,6 +156,7 @@ export async function GET(request: NextRequest) {
        WHERE i.TRANSDATE BETWEEN '${startDate}' AND '${endDate}'
          AND s.STOCKID IS NOT NULL
          AND ii.QUANTITY > 0
+         AND i.DEPOTID IN (24, 25)
        GROUP BY s.STOCKID, s.STOCKNAME, s.GROUPCODE, s.SPECCODE1, s.SPECCODE2, s.STOCKNO
        ORDER BY ${sortBy === 'revenue' ? 'totalRevenue' : sortBy === 'frequency' ? 'salesCount' : 'totalQuantity'} DESC`;
 
