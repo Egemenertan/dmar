@@ -3,7 +3,7 @@
 // Removed unused imports useState and useEffect
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { TrendingUp, PieChart, BarChart3, Calendar, Calculator, Hash } from 'lucide-react';
+import { TrendingUp, PieChart, BarChart3, Calendar, Calculator, Hash, RotateCcw, X, TrendingDown } from 'lucide-react';
 import { format } from 'date-fns';
 import { DateRange } from 'react-day-picker';
 
@@ -14,7 +14,11 @@ import MarketRevenueBarChart from './MarketRevenueBarChart';
 interface MarketRevenue {
   marketName: string;
   totalRevenue: number;
+  totalReturns: number;
   totalOrders?: number;
+  totalReturnOrders?: number;
+  totalCancelledOrders?: number;
+  totalCancelledAmount?: number;
   averageOrderAmount?: number;
 }
 
@@ -22,6 +26,10 @@ interface DailyTrendData {
   date: string;
   revenue: number;
   orders: number;
+  returns: number;
+  returnOrders: number;
+  cancelledOrders: number;
+  cancelledAmount: number;
 }
 
 interface DashboardChartsProps {
@@ -62,10 +70,10 @@ export default function DashboardCharts({ marketRevenue, date, loading, dailyTre
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <TrendingUp className="h-5 w-5 text-blue-500" />
-                Günlük Ciro ve Sipariş Trendi
+                Günlük Ciro, Sipariş, İade ve İptal Trendi
               </CardTitle>
               <p className="text-sm text-muted-foreground">
-                Seçilen tarih aralığındaki günlük performans analizi
+                Seçilen tarih aralığındaki günlük performans, iade ve iptal analizi
               </p>
             </CardHeader>
             <CardContent>
@@ -114,7 +122,8 @@ export default function DashboardCharts({ marketRevenue, date, loading, dailyTre
 
       {/* Stats Summary */}
       {marketRevenue.length > 0 && (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {/* İlk Satır - 4 Kart */}
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">En Yüksek Ciro</CardTitle>
@@ -132,6 +141,36 @@ export default function DashboardCharts({ marketRevenue, date, loading, dailyTre
           
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Toplam İade</CardTitle>
+              <RotateCcw className="h-4 w-4 text-red-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                ₺{marketRevenue.reduce((sum, m) => sum + (m.totalReturns || 0), 0).toLocaleString('tr-TR')}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Toplam iade tutarı
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Toplam İptal</CardTitle>
+              <X className="h-4 w-4 text-gray-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                ₺{marketRevenue.reduce((sum, m) => sum + (m.totalCancelledAmount || 0), 0).toLocaleString('tr-TR')}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Toplam iptal tutarı (ciroya dahil değil)
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Ortalama Ciro</CardTitle>
               <BarChart3 className="h-4 w-4 text-blue-500" />
             </CardHeader>
@@ -145,17 +184,33 @@ export default function DashboardCharts({ marketRevenue, date, loading, dailyTre
             </CardContent>
           </Card>
 
+          {/* İkinci Satır - 4 Kart */}
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Aktif Market</CardTitle>
-              <PieChart className="h-4 w-4 text-purple-500" />
+              <CardTitle className="text-sm font-medium">İade Fiş Sayısı</CardTitle>
+              <TrendingDown className="h-4 w-4 text-orange-500" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {marketRevenue.filter(m => m.totalRevenue > 0).length}
+                {marketRevenue.reduce((sum, m) => sum + (m.totalReturnOrders || 0), 0).toLocaleString('tr-TR')}
               </div>
               <p className="text-xs text-muted-foreground">
-                Satış yapan market sayısı
+                Toplam iade fiş sayısı
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">İptal Fiş Sayısı</CardTitle>
+              <Hash className="h-4 w-4 text-slate-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {marketRevenue.reduce((sum, m) => sum + (m.totalCancelledOrders || 0), 0).toLocaleString('tr-TR')}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Toplam iptal fiş sayısı
               </p>
             </CardContent>
           </Card>
@@ -191,24 +246,6 @@ export default function DashboardCharts({ marketRevenue, date, loading, dailyTre
               </div>
               <p className="text-xs text-muted-foreground">
                 Genel ortalama sipariş tutarı
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Analiz Dönemi</CardTitle>
-              <Calendar className="h-4 w-4 text-orange-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-lg font-bold">
-                {date?.from && date?.to 
-                  ? `${format(date.from, 'dd/MM')} - ${format(date.to, 'dd/MM')}`
-                  : 'Seçili değil'
-                }
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Seçilen tarih aralığı
               </p>
             </CardContent>
           </Card>

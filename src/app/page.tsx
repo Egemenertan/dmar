@@ -39,6 +39,10 @@ interface DailyTrendData {
   date: string;
   revenue: number;
   orders: number;
+  returns: number;
+  returnOrders: number;
+  cancelledOrders: number;
+  cancelledAmount: number;
 }
 
 export default function Home() {
@@ -118,6 +122,10 @@ export default function Home() {
             date: format(day, 'dd/MM'),
             revenue: summaryData.netRevenue || summaryData.totalRevenue || 0,
             orders: summaryData.totalOrders || 0,
+            returns: summaryData.totalReturns || 0,
+            returnOrders: summaryData.totalReturnOrders || 0,
+            cancelledOrders: summaryData.totalCancelledOrders || 0,
+            cancelledAmount: summaryData.totalCancelledAmount || 0,
           });
         }
 
