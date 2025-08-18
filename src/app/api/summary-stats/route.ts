@@ -1,6 +1,13 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { format } from 'date-fns';
 
+interface SummaryStatsResult {
+  TotalRevenue?: number;
+  TotalReturns?: number;
+  TotalOrders?: number;
+  TotalReturnOrders?: number;
+}
+
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const startDate = searchParams.get('startDate');
@@ -40,7 +47,7 @@ export async function GET(request: NextRequest) {
     }
 
     const data = await response.json();
-    let result = {};
+    let result: SummaryStatsResult = {};
     
     if (typeof data === 'string') {
       try {
