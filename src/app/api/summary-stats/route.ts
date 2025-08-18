@@ -6,6 +6,8 @@ interface SummaryStatsResult {
   TotalReturns?: number;
   TotalOrders?: number;
   TotalReturnOrders?: number;
+  TotalCancelledOrders?: number;
+  TotalCancelledAmount?: number;
 }
 
 export async function GET(request: NextRequest) {
@@ -20,20 +22,24 @@ export async function GET(request: NextRequest) {
   const today = format(new Date(), 'yyyy-d-M');
   const isToday = startDate === today && endDate === today;
 
-  // Tüm satışlar (pozitif ve negatif tutarlarla)
+  // Tüm satışlar (pozitif ve negatif tutarlarla) ve iptal edilenler
   const revenueQuery = isToday
       ? `SELECT 
-         ISNULL(SUM(CASE WHEN TRANSTYPE = 101 THEN TOTAL ELSE 0 END), 0) AS TotalRevenue,
+         ISNULL(SUM(CASE WHEN TRANSTYPE = 101 AND STATUS != 4 THEN TOTAL ELSE 0 END), 0) AS TotalRevenue,
          ISNULL(SUM(CASE WHEN TRANSTYPE = 104 THEN TOTAL ELSE 0 END), 0) AS TotalReturns,
-         ISNULL(COUNT(CASE WHEN TRANSTYPE = 101 THEN 1 END), 0) AS TotalOrders,
-         ISNULL(COUNT(CASE WHEN TRANSTYPE = 104 THEN 1 END), 0) AS TotalReturnOrders
-        FROM VE_INVOICE WHERE TRANSDATE = convert(date, GETDATE()) AND DEPOTID IN (24, 25) AND TRANSTYPE IN (101, 104)`
+         ISNULL(COUNT(CASE WHEN TRANSTYPE = 101 AND STATUS != 4 THEN 1 END), 0) AS TotalOrders,
+         ISNULL(COUNT(CASE WHEN TRANSTYPE = 104 THEN 1 END), 0) AS TotalReturnOrders,
+         ISNULL(COUNT(CASE WHEN STATUS = 4 THEN 1 END), 0) AS TotalCancelledOrders,
+         ISNULL(SUM(CASE WHEN STATUS = 4 THEN TOTAL ELSE 0 END), 0) AS TotalCancelledAmount
+        FROM VE_INVOICE WHERE TRANSDATE = convert(date, GETDATE()) AND DEPOTID IN (24, 25) AND (TRANSTYPE IN (101, 104) OR STATUS = 4)`
       : `SELECT 
-         ISNULL(SUM(CASE WHEN TRANSTYPE = 101 THEN TOTAL ELSE 0 END), 0) AS TotalRevenue,
+         ISNULL(SUM(CASE WHEN TRANSTYPE = 101 AND STATUS != 4 THEN TOTAL ELSE 0 END), 0) AS TotalRevenue,
          ISNULL(SUM(CASE WHEN TRANSTYPE = 104 THEN TOTAL ELSE 0 END), 0) AS TotalReturns,
-         ISNULL(COUNT(CASE WHEN TRANSTYPE = 101 THEN 1 END), 0) AS TotalOrders,
-         ISNULL(COUNT(CASE WHEN TRANSTYPE = 104 THEN 1 END), 0) AS TotalReturnOrders
-        FROM VE_INVOICE WHERE TRANSDATE BETWEEN '${startDate}' AND '${endDate}' AND DEPOTID IN (24, 25) AND TRANSTYPE IN (101, 104)`;
+         ISNULL(COUNT(CASE WHEN TRANSTYPE = 101 AND STATUS != 4 THEN 1 END), 0) AS TotalOrders,
+         ISNULL(COUNT(CASE WHEN TRANSTYPE = 104 THEN 1 END), 0) AS TotalReturnOrders,
+         ISNULL(COUNT(CASE WHEN STATUS = 4 THEN 1 END), 0) AS TotalCancelledOrders,
+         ISNULL(SUM(CASE WHEN STATUS = 4 THEN TOTAL ELSE 0 END), 0) AS TotalCancelledAmount
+        FROM VE_INVOICE WHERE TRANSDATE BETWEEN '${startDate}' AND '${endDate}' AND DEPOTID IN (24, 25) AND (TRANSTYPE IN (101, 104) OR STATUS = 4)`;
   
   try {
     const response = await fetch('http://46.30.179.216:8640/TrexIntegrationService/REST/GetJson', {
@@ -66,12 +72,16 @@ export async function GET(request: NextRequest) {
     const totalReturns = result.TotalReturns || 0;
     const totalOrders = result.TotalOrders || 0;
     const totalReturnOrders = result.TotalReturnOrders || 0;
+    const totalCancelledOrders = result.TotalCancelledOrders || 0;
+    const totalCancelledAmount = result.TotalCancelledAmount || 0;
 
     return NextResponse.json({
       totalRevenue,
       totalReturns,
       totalOrders,
       totalReturnOrders,
+      totalCancelledOrders,
+      totalCancelledAmount,
       netRevenue: totalRevenue - totalReturns,
     });
   } catch (error) {

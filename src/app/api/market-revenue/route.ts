@@ -16,29 +16,33 @@ export async function GET(request: NextRequest) {
   const query = isToday
       ? `SELECT
             d.DEPOTNAME AS marketName,
-            ISNULL(SUM(CASE WHEN i.TRANSTYPE = 101 THEN i.TOTAL ELSE 0 END), 0) AS totalRevenue,
+            ISNULL(SUM(CASE WHEN i.TRANSTYPE = 101 AND i.STATUS != 4 THEN i.TOTAL ELSE 0 END), 0) AS totalRevenue,
             ISNULL(SUM(CASE WHEN i.TRANSTYPE = 104 THEN i.TOTAL ELSE 0 END), 0) AS totalReturns,
-            ISNULL(COUNT(CASE WHEN i.TRANSTYPE = 101 THEN 1 END), 0) AS totalOrders,
+            ISNULL(COUNT(CASE WHEN i.TRANSTYPE = 101 AND i.STATUS != 4 THEN 1 END), 0) AS totalOrders,
             ISNULL(COUNT(CASE WHEN i.TRANSTYPE = 104 THEN 1 END), 0) AS totalReturnOrders,
-            ISNULL(SUM(CASE WHEN i.TRANSTYPE = 101 THEN i.TOTAL ELSE 0 END), 0) - ISNULL(SUM(CASE WHEN i.TRANSTYPE = 104 THEN i.TOTAL ELSE 0 END), 0) AS netRevenue
+            ISNULL(COUNT(CASE WHEN i.STATUS = 4 THEN 1 END), 0) AS totalCancelledOrders,
+            ISNULL(SUM(CASE WHEN i.STATUS = 4 THEN i.TOTAL ELSE 0 END), 0) AS totalCancelledAmount,
+            ISNULL(SUM(CASE WHEN i.TRANSTYPE = 101 AND i.STATUS != 4 THEN i.TOTAL ELSE 0 END), 0) - ISNULL(SUM(CASE WHEN i.TRANSTYPE = 104 THEN i.TOTAL ELSE 0 END), 0) AS netRevenue
           FROM VE_INVOICE i
           JOIN VE_DEPOT d ON i.DEPOTID = d.DEPOTID
           WHERE i.TRANSDATE = convert(date, GETDATE())
             AND i.DEPOTID IN (24, 25)
-            AND i.TRANSTYPE IN (101, 104)
+            AND (i.TRANSTYPE IN (101, 104) OR i.STATUS = 4)
           GROUP BY d.DEPOTNAME`
       : `SELECT
             d.DEPOTNAME AS marketName,
-            ISNULL(SUM(CASE WHEN i.TRANSTYPE = 101 THEN i.TOTAL ELSE 0 END), 0) AS totalRevenue,
+            ISNULL(SUM(CASE WHEN i.TRANSTYPE = 101 AND i.STATUS != 4 THEN i.TOTAL ELSE 0 END), 0) AS totalRevenue,
             ISNULL(SUM(CASE WHEN i.TRANSTYPE = 104 THEN i.TOTAL ELSE 0 END), 0) AS totalReturns,
-            ISNULL(COUNT(CASE WHEN i.TRANSTYPE = 101 THEN 1 END), 0) AS totalOrders,
+            ISNULL(COUNT(CASE WHEN i.TRANSTYPE = 101 AND i.STATUS != 4 THEN 1 END), 0) AS totalOrders,
             ISNULL(COUNT(CASE WHEN i.TRANSTYPE = 104 THEN 1 END), 0) AS totalReturnOrders,
-            ISNULL(SUM(CASE WHEN i.TRANSTYPE = 101 THEN i.TOTAL ELSE 0 END), 0) - ISNULL(SUM(CASE WHEN i.TRANSTYPE = 104 THEN i.TOTAL ELSE 0 END), 0) AS netRevenue
+            ISNULL(COUNT(CASE WHEN i.STATUS = 4 THEN 1 END), 0) AS totalCancelledOrders,
+            ISNULL(SUM(CASE WHEN i.STATUS = 4 THEN i.TOTAL ELSE 0 END), 0) AS totalCancelledAmount,
+            ISNULL(SUM(CASE WHEN i.TRANSTYPE = 101 AND i.STATUS != 4 THEN i.TOTAL ELSE 0 END), 0) - ISNULL(SUM(CASE WHEN i.TRANSTYPE = 104 THEN i.TOTAL ELSE 0 END), 0) AS netRevenue
           FROM VE_INVOICE i
           JOIN VE_DEPOT d ON i.DEPOTID = d.DEPOTID
           WHERE i.TRANSDATE BETWEEN '${startDate}' AND '${endDate}'
             AND i.DEPOTID IN (24, 25)
-            AND i.TRANSTYPE IN (101, 104)
+            AND (i.TRANSTYPE IN (101, 104) OR i.STATUS = 4)
           GROUP BY d.DEPOTNAME`;
 
   try {

@@ -18,7 +18,8 @@ import {
   Hash,
   RotateCcw,
   TrendingDown,
-  TrendingUp
+  TrendingUp,
+  X
 } from "lucide-react"
 import DashboardCharts from "@/components/charts/DashboardCharts"
 
@@ -29,6 +30,8 @@ interface MarketRevenue {
   netRevenue: number;
   totalOrders?: number;
   totalReturnOrders?: number;
+  totalCancelledOrders?: number;
+  totalCancelledAmount?: number;
   averageOrderAmount?: number;
 }
 
@@ -50,6 +53,8 @@ export default function Home() {
     netRevenue: 0,
     totalOrders: 0,
     totalReturnOrders: 0,
+    totalCancelledOrders: 0,
+    totalCancelledAmount: 0,
   });
   const [marketRevenue, setMarketRevenue] = useState<MarketRevenue[]>([]);
   const [dailyTrend, setDailyTrend] = useState<DailyTrendData[]>([]);
@@ -59,7 +64,7 @@ export default function Home() {
     if (!date?.from || !date?.to) return;
 
     setLoading(true);
-    setStats({ totalRevenue: 0, totalReturns: 0, netRevenue: 0, totalOrders: 0, totalReturnOrders: 0 });
+    setStats({ totalRevenue: 0, totalReturns: 0, netRevenue: 0, totalOrders: 0, totalReturnOrders: 0, totalCancelledOrders: 0, totalCancelledAmount: 0 });
     setMarketRevenue([]);
     setDailyTrend([]);
 
@@ -78,7 +83,9 @@ export default function Home() {
     let totalReturns = 0;
     let totalOrders = 0;
     let totalReturnOrders = 0;
-    const accumulatedMarketRevenue: { [key: string]: { totalRevenue: number; totalReturns: number; netRevenue: number; totalOrders: number; totalReturnOrders: number } } = {};
+    let totalCancelledOrders = 0;
+    let totalCancelledAmount = 0;
+    const accumulatedMarketRevenue: { [key: string]: { totalRevenue: number; totalReturns: number; netRevenue: number; totalOrders: number; totalReturnOrders: number; totalCancelledOrders: number; totalCancelledAmount: number } } = {};
     const accumulatedDepotStats: { [key: string]: { totalRevenue: number; totalOrders: number; orderCount: number } } = {};
     const dailyTrendData: DailyTrendData[] = [];
 
@@ -103,6 +110,8 @@ export default function Home() {
           totalReturns += summaryData.totalReturns || 0;
           totalOrders += summaryData.totalOrders || 0;
           totalReturnOrders += summaryData.totalReturnOrders || 0;
+          totalCancelledOrders += summaryData.totalCancelledOrders || 0;
+          totalCancelledAmount += summaryData.totalCancelledAmount || 0;
 
           // Add to daily trend
           dailyTrendData.push({
@@ -120,7 +129,9 @@ export default function Home() {
                 totalReturns: 0,
                 netRevenue: 0,
                 totalOrders: 0,
-                totalReturnOrders: 0
+                totalReturnOrders: 0,
+                totalCancelledOrders: 0,
+                totalCancelledAmount: 0
               };
             }
             accumulatedMarketRevenue[market.marketName].totalRevenue += market.totalRevenue || 0;
@@ -128,6 +139,8 @@ export default function Home() {
             accumulatedMarketRevenue[market.marketName].netRevenue += market.netRevenue || 0;
             accumulatedMarketRevenue[market.marketName].totalOrders += market.totalOrders || 0;
             accumulatedMarketRevenue[market.marketName].totalReturnOrders += market.totalReturnOrders || 0;
+            accumulatedMarketRevenue[market.marketName].totalCancelledOrders += market.totalCancelledOrders || 0;
+            accumulatedMarketRevenue[market.marketName].totalCancelledAmount += market.totalCancelledAmount || 0;
           });
         }
 
@@ -152,7 +165,9 @@ export default function Home() {
       totalReturns, 
       netRevenue: totalRevenue - totalReturns,
       totalOrders, 
-      totalReturnOrders 
+      totalReturnOrders,
+      totalCancelledOrders,
+      totalCancelledAmount
     });
     setDailyTrend(dailyTrendData);
     setMarketRevenue(Object.entries(accumulatedMarketRevenue).map(([marketName, marketStats]) => {
@@ -164,6 +179,8 @@ export default function Home() {
         netRevenue: marketStats.netRevenue,
         totalOrders: marketStats.totalOrders || depotStats?.totalOrders || 0,
         totalReturnOrders: marketStats.totalReturnOrders,
+        totalCancelledOrders: marketStats.totalCancelledOrders,
+        totalCancelledAmount: marketStats.totalCancelledAmount,
         averageOrderAmount: marketStats.totalOrders > 0 ? marketStats.totalRevenue / marketStats.totalOrders : 0,
       };
     }));
@@ -231,7 +248,7 @@ export default function Home() {
       </div>
 
       {/* Stats Cards - Enhanced Design */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {/* Toplam Ciro */}
         <Card className="transition-all duration-300 ease-in-out hover:shadow-xl hover:-translate-y-1">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -264,6 +281,22 @@ export default function Home() {
           </CardContent>
         </Card>
 
+        {/* İptal Tutarı */}
+        <Card className="transition-all duration-300 ease-in-out hover:shadow-xl hover:-translate-y-1">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Toplam İptal</CardTitle>
+            <X className="h-5 w-5 text-gray-500" />
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="h-8 w-3/4 animate-pulse rounded-md bg-muted" />
+            ) : (
+              <div className="text-3xl font-bold">₺{stats.totalCancelledAmount.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+            )}
+            <p className="text-xs text-muted-foreground pt-1">İptal edilen fiş tutarı (ciroya dahil değil)</p>
+          </CardContent>
+        </Card>
+
         {/* Net Ciro */}
         <Card className="transition-all duration-300 ease-in-out hover:shadow-xl hover:-translate-y-1">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -276,7 +309,23 @@ export default function Home() {
             ) : (
               <div className="text-3xl font-bold">₺{stats.netRevenue.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
             )}
-            <p className="text-xs text-muted-foreground pt-1">Ciro - İade Tutarı</p>
+            <p className="text-xs text-muted-foreground pt-1">Ciro - İade (İptal dahil değil)</p>
+          </CardContent>
+        </Card>
+
+        {/* İptal Sayısı */}
+        <Card className="transition-all duration-300 ease-in-out hover:shadow-xl hover:-translate-y-1">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">İptal Sayısı</CardTitle>
+            <Hash className="h-5 w-5 text-slate-500" />
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="h-8 w-3/4 animate-pulse rounded-md bg-muted" />
+            ) : (
+              <div className="text-3xl font-bold">{stats.totalCancelledOrders.toLocaleString('tr-TR')}</div>
+            )}
+            <p className="text-xs text-muted-foreground pt-1">İptal edilen fiş sayısı</p>
           </CardContent>
         </Card>
 
@@ -367,7 +416,7 @@ export default function Home() {
                     </div>
                   </div>
 
-                  {/* Returns Section */}
+                  {/* Returns & Cancellations Section */}
                   <div className="pt-2 border-t">
                     <div className="grid grid-cols-2 gap-4">
                       <div className="text-center">
@@ -388,6 +437,26 @@ export default function Home() {
                           </span>
                         </div>
                         <p className="text-xs text-muted-foreground">İade Fiş Sayısı</p>
+                      </div>
+
+                      <div className="text-center">
+                        <div className="flex items-center justify-center gap-1 mb-1">
+                          <X className="h-4 w-4 text-gray-500" />
+                          <span className="text-lg font-semibold text-gray-600">
+                            ₺{market.totalCancelledAmount?.toLocaleString('tr-TR') || 0}
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">İptal Tutarı (ciroya dahil değil)</p>
+                      </div>
+
+                      <div className="text-center">
+                        <div className="flex items-center justify-center gap-1 mb-1">
+                          <Hash className="h-4 w-4 text-slate-500" />
+                          <span className="text-lg font-semibold text-slate-600">
+                            {market.totalCancelledOrders?.toLocaleString('tr-TR') || 0}
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">İptal Fiş Sayısı</p>
                       </div>
                     </div>
                   </div>
