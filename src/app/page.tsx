@@ -15,14 +15,20 @@ import {
   Store,
   RefreshCw,
   Calculator,
-  Hash
+  Hash,
+  RotateCcw,
+  TrendingDown,
+  TrendingUp
 } from "lucide-react"
 import DashboardCharts from "@/components/charts/DashboardCharts"
 
 interface MarketRevenue {
   marketName: string;
   totalRevenue: number;
+  totalReturns: number;
+  netRevenue: number;
   totalOrders?: number;
+  totalReturnOrders?: number;
   averageOrderAmount?: number;
 }
 
@@ -40,7 +46,10 @@ export default function Home() {
 
   const [stats, setStats] = useState({
     totalRevenue: 0,
+    totalReturns: 0,
+    netRevenue: 0,
     totalOrders: 0,
+    totalReturnOrders: 0,
   });
   const [marketRevenue, setMarketRevenue] = useState<MarketRevenue[]>([]);
   const [dailyTrend, setDailyTrend] = useState<DailyTrendData[]>([]);
@@ -50,7 +59,7 @@ export default function Home() {
     if (!date?.from || !date?.to) return;
 
     setLoading(true);
-    setStats({ totalRevenue: 0, totalOrders: 0 });
+    setStats({ totalRevenue: 0, totalReturns: 0, netRevenue: 0, totalOrders: 0, totalReturnOrders: 0 });
     setMarketRevenue([]);
     setDailyTrend([]);
 
@@ -66,8 +75,10 @@ export default function Home() {
 
     // Initialize accumulators
     let totalRevenue = 0;
+    let totalReturns = 0;
     let totalOrders = 0;
-    const accumulatedMarketRevenue: { [key: string]: number } = {};
+    let totalReturnOrders = 0;
+    const accumulatedMarketRevenue: { [key: string]: { totalRevenue: number; totalReturns: number; netRevenue: number; totalOrders: number; totalReturnOrders: number } } = {};
     const accumulatedDepotStats: { [key: string]: { totalRevenue: number; totalOrders: number; orderCount: number } } = {};
     const dailyTrendData: DailyTrendData[] = [];
 
@@ -86,22 +97,37 @@ export default function Home() {
         const marketData = await marketRes.json();
         const depotStatsData = await depotStatsRes.json();
 
-        if (summaryData.totalRevenue > 0) {
+        if (summaryData.totalRevenue > 0 || summaryData.totalReturns > 0) {
           // Accumulate totals
-          totalRevenue += summaryData.totalRevenue;
-          totalOrders += summaryData.totalOrders;
+          totalRevenue += summaryData.totalRevenue || 0;
+          totalReturns += summaryData.totalReturns || 0;
+          totalOrders += summaryData.totalOrders || 0;
+          totalReturnOrders += summaryData.totalReturnOrders || 0;
 
           // Add to daily trend
           dailyTrendData.push({
             date: format(day, 'dd/MM'),
-            revenue: summaryData.totalRevenue,
-            orders: summaryData.totalOrders,
+            revenue: summaryData.netRevenue || summaryData.totalRevenue || 0,
+            orders: summaryData.totalOrders || 0,
           });
         }
 
         if (Array.isArray(marketData)) {
           marketData.forEach(market => {
-            accumulatedMarketRevenue[market.marketName] = (accumulatedMarketRevenue[market.marketName] || 0) + market.totalRevenue;
+            if (!accumulatedMarketRevenue[market.marketName]) {
+              accumulatedMarketRevenue[market.marketName] = {
+                totalRevenue: 0,
+                totalReturns: 0,
+                netRevenue: 0,
+                totalOrders: 0,
+                totalReturnOrders: 0
+              };
+            }
+            accumulatedMarketRevenue[market.marketName].totalRevenue += market.totalRevenue || 0;
+            accumulatedMarketRevenue[market.marketName].totalReturns += market.totalReturns || 0;
+            accumulatedMarketRevenue[market.marketName].netRevenue += market.netRevenue || 0;
+            accumulatedMarketRevenue[market.marketName].totalOrders += market.totalOrders || 0;
+            accumulatedMarketRevenue[market.marketName].totalReturnOrders += market.totalReturnOrders || 0;
           });
         }
 
@@ -121,15 +147,24 @@ export default function Home() {
     }
 
     // Update all states at once after all data is collected
-    setStats({ totalRevenue, totalOrders });
+    setStats({ 
+      totalRevenue, 
+      totalReturns, 
+      netRevenue: totalRevenue - totalReturns,
+      totalOrders, 
+      totalReturnOrders 
+    });
     setDailyTrend(dailyTrendData);
-    setMarketRevenue(Object.entries(accumulatedMarketRevenue).map(([marketName, totalRevenue]) => {
+    setMarketRevenue(Object.entries(accumulatedMarketRevenue).map(([marketName, marketStats]) => {
       const depotStats = accumulatedDepotStats[marketName];
       return {
         marketName,
-        totalRevenue,
-        totalOrders: depotStats?.totalOrders || 0,
-        averageOrderAmount: depotStats?.totalOrders > 0 ? depotStats.totalRevenue / depotStats.totalOrders : 0,
+        totalRevenue: marketStats.totalRevenue,
+        totalReturns: marketStats.totalReturns,
+        netRevenue: marketStats.netRevenue,
+        totalOrders: marketStats.totalOrders || depotStats?.totalOrders || 0,
+        totalReturnOrders: marketStats.totalReturnOrders,
+        averageOrderAmount: marketStats.totalOrders > 0 ? marketStats.totalRevenue / marketStats.totalOrders : 0,
       };
     }));
     
@@ -196,74 +231,100 @@ export default function Home() {
       </div>
 
       {/* Stats Cards - Enhanced Design */}
-      <div className="grid gap-6 md:grid-cols-3">
-        <Card className="transition-all duration-200 hover:shadow-md border-l-4 border-l-blue-500">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-            <div>
-              <CardTitle className="text-base font-semibold text-foreground">Toplam Ciro</CardTitle>
-              <p className="text-sm text-muted-foreground">ERENKÖY & COURTYARD</p>
-            </div>
-            <div className="bg-blue-500/10 p-3 rounded-full">
-              <DollarSign className="h-5 w-5 text-blue-500" />
-            </div>
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {/* Toplam Ciro */}
+        <Card className="transition-all duration-300 ease-in-out hover:shadow-xl hover:-translate-y-1">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Toplam Ciro</CardTitle>
+            <DollarSign className="h-5 w-5 text-blue-500" />
           </CardHeader>
-          <CardContent className="pt-0">
+          <CardContent>
             {loading ? (
-              <div className="text-3xl font-bold text-muted-foreground">Yükleniyor...</div>
+              <div className="h-8 w-3/4 animate-pulse rounded-md bg-muted" />
             ) : (
-              <div className="text-3xl font-bold text-foreground">
-                ₺{stats.totalRevenue.toLocaleString('tr-TR')}
-              </div>
+              <div className="text-3xl font-bold">₺{stats.totalRevenue.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
             )}
-            <p className="text-sm text-muted-foreground mt-2">
-              Seçilen aralıktaki toplam ciro
-            </p>
+            <p className="text-xs text-muted-foreground pt-1">ERENKÖY & COURTYARD</p>
           </CardContent>
         </Card>
-        <Card className="transition-all duration-200 hover:shadow-md border-l-4 border-l-green-500">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-            <div>
-              <CardTitle className="text-base font-semibold text-foreground">Toplam Fiş</CardTitle>
-              <p className="text-sm text-muted-foreground">ERENKÖY & COURTYARD</p>
-            </div>
-            <div className="bg-green-500/10 p-3 rounded-full">
-              <ShoppingCart className="h-5 w-5 text-green-500" />
-            </div>
+
+        {/* Toplam İade */}
+        <Card className="transition-all duration-300 ease-in-out hover:shadow-xl hover:-translate-y-1">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Toplam İade</CardTitle>
+            <RotateCcw className="h-5 w-5 text-red-500" />
           </CardHeader>
-          <CardContent className="pt-0">
+          <CardContent>
             {loading ? (
-              <div className="text-3xl font-bold text-muted-foreground">Yükleniyor...</div>
+              <div className="h-8 w-3/4 animate-pulse rounded-md bg-muted" />
             ) : (
-              <div className="text-3xl font-bold text-foreground">
-                {stats.totalOrders.toLocaleString('tr-TR')}
-              </div>
+              <div className="text-3xl font-bold">₺{stats.totalReturns.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
             )}
-            <p className="text-sm text-muted-foreground mt-2">
-              Seçilen aralıktaki toplam fiş
-            </p>
+            <p className="text-xs text-muted-foreground pt-1">ERENKÖY & COURTYARD</p>
           </CardContent>
         </Card>
-        <Card className="transition-all duration-200 hover:shadow-md border-l-4 border-l-purple-500">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-            <div>
-              <CardTitle className="text-base font-semibold text-foreground">Ortalama Sipariş Tutarı</CardTitle>
-              <p className="text-sm text-muted-foreground">ERENKÖY & COURTYARD</p>
-            </div>
-            <div className="bg-purple-500/10 p-3 rounded-full">
-              <Calculator className="h-5 w-5 text-purple-500" />
-            </div>
+
+        {/* Net Ciro */}
+        <Card className="transition-all duration-300 ease-in-out hover:shadow-xl hover:-translate-y-1">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Net Ciro</CardTitle>
+            <TrendingUp className="h-5 w-5 text-emerald-500" />
           </CardHeader>
-          <CardContent className="pt-0">
+          <CardContent>
             {loading ? (
-              <div className="text-3xl font-bold text-muted-foreground">Yükleniyor...</div>
+              <div className="h-8 w-3/4 animate-pulse rounded-md bg-muted" />
             ) : (
-              <div className="text-3xl font-bold text-foreground">
-                ₺{Math.round(stats.totalOrders > 0 ? stats.totalRevenue / stats.totalOrders : 0).toLocaleString('tr-TR')}
-              </div>
+              <div className="text-3xl font-bold">₺{stats.netRevenue.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
             )}
-            <p className="text-sm text-muted-foreground mt-2">
-              Ciro / Sipariş Adedi
-            </p>
+            <p className="text-xs text-muted-foreground pt-1">Ciro - İade Tutarı</p>
+          </CardContent>
+        </Card>
+
+        {/* Toplam Fiş */}
+        <Card className="transition-all duration-300 ease-in-out hover:shadow-xl hover:-translate-y-1">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Toplam Fiş</CardTitle>
+            <ShoppingCart className="h-5 w-5 text-green-500" />
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="h-8 w-3/4 animate-pulse rounded-md bg-muted" />
+            ) : (
+              <div className="text-3xl font-bold">{stats.totalOrders.toLocaleString('tr-TR')}</div>
+            )}
+            <p className="text-xs text-muted-foreground pt-1">Seçilen aralıktaki toplam fiş</p>
+          </CardContent>
+        </Card>
+        
+        {/* İade Fiş Sayısı */}
+        <Card className="transition-all duration-300 ease-in-out hover:shadow-xl hover:-translate-y-1">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">İade Fiş Sayısı</CardTitle>
+            <TrendingDown className="h-5 w-5 text-orange-500" />
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="h-8 w-3/4 animate-pulse rounded-md bg-muted" />
+            ) : (
+              <div className="text-3xl font-bold">{stats.totalReturnOrders.toLocaleString('tr-TR')}</div>
+            )}
+            <p className="text-xs text-muted-foreground pt-1">Seçilen aralıktaki iade fiş sayısı</p>
+          </CardContent>
+        </Card>
+
+        {/* Ortalama Sipariş Tutarı */}
+        <Card className="transition-all duration-300 ease-in-out hover:shadow-xl hover:-translate-y-1">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Ortalama Sipariş Tutarı</CardTitle>
+            <Calculator className="h-5 w-5 text-purple-500" />
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="h-8 w-3/4 animate-pulse rounded-md bg-muted" />
+            ) : (
+              <div className="text-3xl font-bold">₺{Math.round(stats.totalOrders > 0 ? stats.netRevenue / stats.totalOrders : 0).toLocaleString('tr-TR')}</div>
+            )}
+            <p className="text-xs text-muted-foreground pt-1">Net Ciro / Toplam Fiş</p>
           </CardContent>
         </Card>
       </div>
@@ -290,13 +351,45 @@ export default function Home() {
               </CardHeader>
               <CardContent className="pt-0">
                 <div className="space-y-4">
-                  <div>
-                    <div className="text-3xl font-bold text-foreground">
-                      ₺{market.totalRevenue.toLocaleString('tr-TR')}
+                  {/* Main Revenue Display */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <div className="text-2xl font-bold text-foreground">
+                        ₺{market.totalRevenue.toLocaleString('tr-TR')}
+                      </div>
+                      <p className="text-xs text-muted-foreground">Brüt Ciro</p>
                     </div>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Seçilen aralıktaki toplam ciro
-                    </p>
+                    <div>
+                      <div className="text-2xl font-bold text-emerald-600">
+                        ₺{market.netRevenue.toLocaleString('tr-TR')}
+                      </div>
+                      <p className="text-xs text-muted-foreground">Net Ciro</p>
+                    </div>
+                  </div>
+
+                  {/* Returns Section */}
+                  <div className="pt-2 border-t">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="text-center">
+                        <div className="flex items-center justify-center gap-1 mb-1">
+                          <RotateCcw className="h-4 w-4 text-red-500" />
+                          <span className="text-lg font-semibold text-red-600">
+                            ₺{market.totalReturns.toLocaleString('tr-TR')}
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">İade Tutarı</p>
+                      </div>
+                      
+                      <div className="text-center">
+                        <div className="flex items-center justify-center gap-1 mb-1">
+                          <TrendingDown className="h-4 w-4 text-orange-500" />
+                          <span className="text-lg font-semibold text-orange-600">
+                            {market.totalReturnOrders?.toLocaleString('tr-TR') || 0}
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">İade Fiş Sayısı</p>
+                      </div>
+                    </div>
                   </div>
                   
                   {/* Additional Statistics */}
