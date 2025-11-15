@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
         FROM VE_INVOICE WHERE TRANSDATE BETWEEN '${startDate}' AND '${endDate}' AND DEPOTID IN (24, 25) AND (TRANSTYPE IN (101, 104) OR STATUS = 4)`;
   
   try {
-    const response = await fetch('http://46.30.179.216:8640/TrexIntegrationService/REST/GetJson', {
+    const response = await fetch('http://185.110.241.184:8640/TrexIntegrationService/REST/GetJson', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ Query: revenueQuery, ApiKey: '8059858119', ReturnSchema: false }),

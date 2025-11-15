@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
         GROUP BY d.DEPOTNAME`;
 
   try {
-    const res = await fetch('http://46.30.179.216:8640/TrexIntegrationService/REST/GetJson', {
+    const res = await fetch('http://185.110.241.184:8640/TrexIntegrationService/REST/GetJson', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ Query: query, ApiKey: '8059858119', ReturnSchema: false }),

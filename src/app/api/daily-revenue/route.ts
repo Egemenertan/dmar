@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
   const query = `SELECT ISNULL(SUM(TOTAL), 0) AS DailyRevenue FROM VE_INVOICE WHERE TRANSDATE = '${queryDate}' AND DEPOTID IN (24, 25)`;
 
   try {
-    const response = await fetch('http://46.30.179.216:8640/TrexIntegrationService/REST/GetJson', {
+    const response = await fetch('http://185.110.241.184:8640/TrexIntegrationService/REST/GetJson', {
       method: 'POST',
       headers: {
         'accept': 'application/json',
