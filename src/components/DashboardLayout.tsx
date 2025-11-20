@@ -35,10 +35,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         
         {/* Ana İçerik Alanı */}
         <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Header */}
-          <Header 
-            onMobileSidebarToggle={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
-          />
+          {/* Header - Sadece mobilde görünür */}
+          <div className="lg:hidden">
+            <Header 
+              onMobileSidebarToggle={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+            />
+          </div>
           
           {/* Ana İçerik */}
           <main className="flex-1 overflow-x-hidden overflow-y-auto p-2 sm:p-4">

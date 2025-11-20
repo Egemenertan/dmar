@@ -3,8 +3,7 @@
 // Removed unused imports useState and useEffect
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { TrendingUp, PieChart, BarChart3, Calendar, Calculator, Hash, RotateCcw, X, TrendingDown } from 'lucide-react';
-import { format } from 'date-fns';
+import { TrendingUp, PieChart, BarChart3, Calculator, Hash, RotateCcw, X, TrendingDown } from 'lucide-react';
 import { DateRange } from 'react-day-picker';
 
 import RevenueLineChart from './RevenueLineChart';
@@ -39,7 +38,9 @@ interface DashboardChartsProps {
   dailyTrend: DailyTrendData[];
 }
 
-export default function DashboardCharts({ marketRevenue, date, loading, dailyTrend }: DashboardChartsProps) {
+export default function DashboardCharts({ marketRevenue, date: _date, loading, dailyTrend }: DashboardChartsProps) {
+  // date parameter is passed but not used yet
+  void _date;
   return (
     <div className="space-y-8">
       {/* Charts Header */}

@@ -1,0 +1,25 @@
+curl -X POST http://185.110.241.184:8640/TrexIntegrationService/REST/GetJson \
+  -H "Content-Type: application/json" \
+  -d '{
+    "ApiKey": "8059858119",
+    "Query": "SELECT TOP 10 * FROM STOCKGRADEPRICE",
+    "ReturnSchema": false
+  }'
+
+
+
+  curl -X POST http://185.110.241.184:8640/TrexIntegrationService/REST/GetJson \
+  -H "Content-Type: application/json" \
+  -d '{
+    "ApiKey": "8059858119",
+    "Query": "SELECT TOP 1 s.STOCKNO, s.STOCKNAME, sp.STOCKPRICETYPEID, sp.PRICE, sp.INSERTDATE FROM VE_STOCK s JOIN STOCKPRICE sp ON s.STOCKID = sp.STOCKID WHERE sp.PRICE > 0 ORDER BY sp.INSERTDATE DESC",
+    "ReturnSchema": false
+  }'
+
+  curl -X POST http://185.110.241.184:8640/TrexIntegrationService/REST/GetJson \
+  -H "Content-Type: application/json" \
+  -d '{
+    "ApiKey": "8059858119",
+    "Query": "SELECT * FROM STOCKPRICE WHERE STOCKID = 52455 ORDER BY STOCKPRICETYPEID",
+    "ReturnSchema": false
+  }'

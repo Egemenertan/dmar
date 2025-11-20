@@ -22,9 +22,8 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { useAuth } from "@/contexts/AuthContext"
-import { Eye, EyeOff, Mail, Lock, Shield, AlertCircle, CheckCircle } from "lucide-react"
+import { Eye, EyeOff, Mail, Lock, AlertCircle, CheckCircle } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
 // Form validation schemas
@@ -394,10 +393,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
         {/* Security Badge */}
         <div className="flex items-center justify-center gap-2 pt-2">
-          <Badge variant="secondary" className="text-xs">
-            <Shield className="w-3 h-3 mr-1" />
-            256-bit SSL Şifreleme
-          </Badge>
+          
         </div>
       </DialogContent>
     </Dialog>
