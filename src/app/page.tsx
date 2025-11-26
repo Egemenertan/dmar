@@ -67,6 +67,11 @@ export default function Home() {
   const fetchStats = useCallback(async () => {
     if (!date?.from || !date?.to) return;
 
+    console.log('🔄 Fetching stats for:', {
+      from: format(date.from, 'yyyy-MM-dd'),
+      to: format(date.to, 'yyyy-MM-dd'),
+    });
+
     setLoading(true);
     setStats({ totalRevenue: 0, totalReturns: 0, netRevenue: 0, totalOrders: 0, totalReturnOrders: 0, totalCancelledOrders: 0, totalCancelledAmount: 0 });
     setMarketRevenue([]);
@@ -96,12 +101,22 @@ export default function Home() {
     // Process all days and accumulate data
     for (const day of dateRange) {
       const formattedDate = format(day, 'yyyy-d-M');
+      const timestamp = Date.now(); // Cache buster
       
       try {
         const [summaryRes, marketRes, depotStatsRes] = await Promise.all([
-          fetch(`/api/summary-stats?startDate=${formattedDate}&endDate=${formattedDate}`),
-          fetch(`/api/market-revenue?startDate=${formattedDate}&endDate=${formattedDate}`),
-          fetch(`/api/depot-stats?startDate=${formattedDate}&endDate=${formattedDate}`)
+          fetch(`/api/summary-stats?startDate=${formattedDate}&endDate=${formattedDate}&_t=${timestamp}`, {
+            cache: 'no-store',
+            headers: { 'Cache-Control': 'no-cache' }
+          }),
+          fetch(`/api/market-revenue?startDate=${formattedDate}&endDate=${formattedDate}&_t=${timestamp}`, {
+            cache: 'no-store',
+            headers: { 'Cache-Control': 'no-cache' }
+          }),
+          fetch(`/api/depot-stats?startDate=${formattedDate}&endDate=${formattedDate}&_t=${timestamp}`, {
+            cache: 'no-store',
+            headers: { 'Cache-Control': 'no-cache' }
+          })
         ]);
         
         const summaryData = await summaryRes.json();
@@ -202,56 +217,241 @@ export default function Home() {
 
   return (
     <div className="space-y-8 p-1">
-      {/* Date Range Filter */}
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-semibold">Dashboard</h2>
-        <div className="flex items-center gap-4">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                id="date"
-                variant={"outline"}
-                className="w-[300px] justify-start text-left font-normal"
+      {/* Enhanced Date Range Filter */}
+      <div className="bg-transparent">
+        <div className="pt-2">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+            <div>
+              <h2 className="text-3xl font-bold text-gray-900">Dashboard</h2>
+              <p className="text-sm text-gray-500 mt-1">3 Depo Toplu Analizi</p>
+            </div>
+            
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Quick Access Buttons */}
+              <div className="flex gap-2">
+                <Button 
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    const today = new Date();
+                    setDate({from: today, to: today});
+                  }}
+                  className={`font-medium cursor-pointer transition-all ${
+                    date?.from?.toDateString() === new Date().toDateString() && date?.to?.toDateString() === new Date().toDateString()
+                      ? 'bg-[#63A860] text-white border-[#63A860] hover:bg-[#507d4e]'
+                      : 'bg-white hover:bg-[#63A860] hover:text-white hover:border-[#63A860]'
+                  }`}
+                >
+                  Bugün
+                </Button>
+                <Button 
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    const today = new Date();
+                    const yesterday = addDays(today, -1);
+                    setDate({from: yesterday, to: yesterday});
+                  }}
+                  className="font-medium bg-white cursor-pointer hover:bg-[#63A860] hover:text-white hover:border-[#63A860] transition-all"
+                >
+                  Dün
+                </Button>
+                <Button 
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setDate({from: addDays(new Date(), -6), to: new Date()})}
+                  className="font-medium bg-white cursor-pointer hover:bg-[#63A860] hover:text-white hover:border-[#63A860] transition-all"
+                >
+                  Son 7 Gün
+                </Button>
+                <Button 
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setDate({from: addDays(new Date(), -29), to: new Date()})}
+                  className="font-medium bg-white cursor-pointer hover:bg-[#63A860] hover:text-white hover:border-[#63A860] transition-all"
+                >
+                  Son 30 Gün
+                </Button>
+              </div>
+
+              {/* Calendar Picker */}
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    id="date"
+                    variant="outline"
+                    className="w-[320px] justify-start text-left font-medium bg-white border-2 hover:border-[#63A860] transition-colors h-11 cursor-pointer"
+                  >
+                    <CalendarIcon className="mr-3 h-5 w-5 text-[#63A860]" />
+                    {date?.from ? (
+                      date.to ? (
+                        <span className="font-semibold">
+                          {format(date.from, "dd MMM yyyy")} - {format(date.to, "dd MMM yyyy")}
+                        </span>
+                      ) : (
+                        <span className="font-semibold">{format(date.from, "dd MMM yyyy")}</span>
+                      )
+                    ) : (
+                      <span className="text-gray-500">Tarih Seçin</span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0 shadow-2xl border-2" align="end">
+                  <style jsx global>{`
+                    .rdp {
+                      --rdp-cell-size: 40px;
+                      --rdp-accent-color: #63A860;
+                      --rdp-background-color: #f0f9f0;
+                      font-size: 14px;
+                    }
+                    .rdp-months {
+                      padding: 1rem;
+                    }
+                    .rdp-month {
+                      margin: 0 0.75rem;
+                    }
+                    .rdp-caption {
+                      margin-bottom: 0.75rem;
+                    }
+                    .rdp-caption_label {
+                      font-size: 16px;
+                      font-weight: 700;
+                      color: #1f2937;
+                    }
+                    .rdp-head_cell {
+                      font-weight: 600;
+                      font-size: 12px;
+                      color: #6b7280;
+                      padding: 0.4rem;
+                      text-transform: uppercase;
+                    }
+                    .rdp-cell {
+                      padding: 1px;
+                    }
+                    .rdp-day {
+                      width: 40px;
+                      height: 40px;
+                      border-radius: 10px;
+                      font-size: 14px;
+                      font-weight: 600;
+                      transition: all 0.2s ease;
+                      cursor: pointer !important;
+                    }
+                    .rdp-day:hover:not(.rdp-day_disabled):not(.rdp-day_selected) {
+                      background-color: #f0f9f0 !important;
+                      transform: scale(1.05);
+                      box-shadow: 0 2px 8px rgba(99, 168, 96, 0.2);
+                    }
+                    .rdp-day_selected {
+                      background-color: #63A860 !important;
+                      color: white !important;
+                      font-weight: 700;
+                      transform: scale(1.02);
+                    }
+                    .rdp-day_selected:hover {
+                      background-color: #507d4e !important;
+                      transform: scale(1.08);
+                    }
+                    .rdp-day_range_middle {
+                      background-color: #f0f9f0 !important;
+                      color: #3d6d3a;
+                      border-radius: 0 !important;
+                    }
+                    .rdp-day_range_start {
+                      border-radius: 10px 0 0 10px !important;
+                    }
+                    .rdp-day_range_end {
+                      border-radius: 0 10px 10px 0 !important;
+                    }
+                    .rdp-day_today {
+                      font-weight: 700;
+                      color: #63A860;
+                      border: 2px solid #63A860;
+                    }
+                    .rdp-day_disabled {
+                      color: #d1d5db;
+                      cursor: not-allowed !important;
+                    }
+                    .rdp-day_outside {
+                      color: #9ca3af;
+                      opacity: 0.5;
+                    }
+                    .rdp-nav_button {
+                      width: 36px;
+                      height: 36px;
+                      border-radius: 8px;
+                      transition: all 0.2s ease;
+                      cursor: pointer;
+                    }
+                    .rdp-nav_button:hover {
+                      background-color: #f0f9f0;
+                      transform: scale(1.1);
+                    }
+                    .rdp-nav_button svg {
+                      width: 18px;
+                      height: 18px;
+                    }
+                  `}</style>
+                  <Calendar
+                    initialFocus
+                    mode="range"
+                    defaultMonth={date?.from}
+                    selected={date}
+                    onSelect={(newDate) => {
+                      console.log('📅 Tarih değişti:', newDate);
+                      setDate(newDate);
+                    }}
+                    numberOfMonths={2}
+                    disabled={{ after: new Date() }}
+                    className="rounded-lg"
+                  />
+                  <div className="p-3 border-t bg-gradient-to-r from-green-50 to-emerald-50">
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-[#63A860]"></div>
+                      <p className="text-sm font-semibold text-gray-700">
+                        {date?.from && date?.to 
+                          ? `${Math.ceil((date.to.getTime() - date.from.getTime()) / (1000 * 60 * 60 * 24)) + 1} gün seçildi`
+                          : 'Başlangıç ve bitiş tarihi seçin'}
+                      </p>
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
+
+              {/* Refresh Button */}
+              <Button 
+                variant="outline"
+                size="sm"
+                onClick={fetchStats}
+                disabled={loading}
+                className="flex items-center gap-2 bg-white border-2 h-11 px-4 font-medium hover:bg-[#63A860] hover:text-white hover:border-[#63A860] transition-all cursor-pointer"
               >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {date?.from ? (
-                  date.to ? (
-                    <>
-                      {format(date.from, "LLL dd, y")} -{" "}
-                      {format(date.to, "LLL dd, y")}
-                    </>
-                  ) : (
-                    format(date.from, "LLL dd, y")
-                  )
-                ) : (
-                  <span>Pick a date</span>
-                )}
+                <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                Yenile
               </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="end">
-              <Calendar
-                initialFocus
-                mode="range"
-                defaultMonth={date?.from}
-                selected={date}
-                onSelect={setDate}
-                numberOfMonths={2}
-                disabled={{ after: new Date() }}
-              />
-            </PopoverContent>
-          </Popover>
-          <Button onClick={() => setDate({from: new Date(), to: new Date()})}>Bugün</Button>
-          <Button variant="outline" onClick={() => setDate({from: addDays(new Date(), -6), to: new Date()})}>Son 7 Gün</Button>
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={fetchStats}
-            disabled={loading}
-            className="flex items-center gap-2"
-          >
-            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-            Yenile
-          </Button>
+            </div>
+          </div>
+
+          {/* Date Info Bar */}
+          {date?.from && date?.to && (
+            <div className="mt-4 pt-4 border-t border-gray-200 flex items-center justify-between text-sm">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-[#63A860] animate-pulse"></div>
+                <span className="text-gray-600">
+                  Seçili Dönem: <span className="font-semibold text-gray-900">
+                    {format(date.from, "dd MMMM yyyy")} - {format(date.to, "dd MMMM yyyy")}
+                  </span>
+                </span>
+              </div>
+              <div className="text-gray-500">
+                {loading ? (
+                  <span className="text-[#63A860] font-medium">Veriler yükleniyor...</span>
+                ) : (
+                  <span className="text-[#63A860] font-medium">✓ Veriler güncel</span>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
