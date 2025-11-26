@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
   // Use the provided date parameter, or default to today if not provided.
   const queryDate = dateParam || new Date().toISOString().split('T')[0];
   
-  const query = `SELECT ISNULL(SUM(TOTAL), 0) AS DailyRevenue FROM VE_INVOICE WHERE TRANSDATE = '${queryDate}' AND DEPOTID IN (24, 25)`;
+  const query = `SELECT ISNULL(SUM(TOTAL), 0) AS DailyRevenue FROM VE_INVOICE WHERE TRANSDATE = '${queryDate}' AND DEPOTID IN (24, 25, 26)`;
 
   try {
     const response = await fetch('http://185.110.241.184:8640/TrexIntegrationService/REST/GetJson', {

@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
           FROM VE_INVOICE i
           JOIN VE_DEPOT d ON i.DEPOTID = d.DEPOTID
           WHERE i.TRANSDATE = convert(date, GETDATE())
-            AND i.DEPOTID IN (24, 25)
+            AND i.DEPOTID IN (24, 25, 26)
             AND (i.TRANSTYPE IN (101, 104) OR i.STATUS = 4)
           GROUP BY d.DEPOTNAME`
       : `SELECT
@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
           FROM VE_INVOICE i
           JOIN VE_DEPOT d ON i.DEPOTID = d.DEPOTID
           WHERE i.TRANSDATE BETWEEN '${startDate}' AND '${endDate}'
-            AND i.DEPOTID IN (24, 25)
+            AND i.DEPOTID IN (24, 25, 26)
             AND (i.TRANSTYPE IN (101, 104) OR i.STATUS = 4)
           GROUP BY d.DEPOTNAME`;
 

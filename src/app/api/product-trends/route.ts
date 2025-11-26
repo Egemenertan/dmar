@@ -96,7 +96,7 @@ export async function GET(request: NextRequest) {
        WHERE i.TRANSDATE = convert(date, GETDATE())
          AND s.STOCKID IS NOT NULL
          AND ii.QUANTITY > 0
-         AND i.DEPOTID IN (24, 25)
+          AND i.DEPOTID IN (24, 25, 26)
        GROUP BY s.STOCKID, s.STOCKNAME, s.GROUPCODE, s.SPECCODE1, s.SPECCODE2, s.STOCKNO
        ORDER BY ${sortBy === 'revenue' ? 'totalRevenue' : sortBy === 'frequency' ? 'salesCount' : 'totalQuantity'} DESC`
     : `SELECT TOP ${limit}
@@ -156,7 +156,7 @@ export async function GET(request: NextRequest) {
        WHERE i.TRANSDATE BETWEEN '${startDate}' AND '${endDate}'
          AND s.STOCKID IS NOT NULL
          AND ii.QUANTITY > 0
-         AND i.DEPOTID IN (24, 25)
+          AND i.DEPOTID IN (24, 25, 26)
        GROUP BY s.STOCKID, s.STOCKNAME, s.GROUPCODE, s.SPECCODE1, s.SPECCODE2, s.STOCKNO
        ORDER BY ${sortBy === 'revenue' ? 'totalRevenue' : sortBy === 'frequency' ? 'salesCount' : 'totalQuantity'} DESC`;
 

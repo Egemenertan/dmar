@@ -71,6 +71,7 @@ export default function PriceComparisonPage() {
   }>>([]);
   const [editedSavedSuggestions, setEditedSavedSuggestions] = useState<{ [comparisonId: string]: { [stockCode: string]: number } }>({});
   const [updatingPrices, setUpdatingPrices] = useState<{ [key: string]: boolean }>({});
+  const [bulkUpdating, setBulkUpdating] = useState<{ [comparisonId: string]: boolean }>({});
 
   // LocalStorage'dan kayıtları yükle
   useEffect(() => {
@@ -143,14 +144,19 @@ export default function PriceComparisonPage() {
   const handleSaveComparison = async () => {
     if (!comparisonResults.length || !summary) return;
 
-    // Kullanıcının düzenlediği önerileri kaydet
+    // Kullanıcının düzenlediği önerileri kaydet veya tavsiye raf fiyatını kullan
     const resultsWithEditedSuggestions = comparisonResults.map((item) => {
-      if (editedSuggestions[item.stockCode] !== undefined) {
+      const finalSuggestedPrice = editedSuggestions[item.stockCode] !== undefined
+        ? editedSuggestions[item.stockCode]
+        : item.uploaded.uploadedShelfPrice
+        || item.comparison?.suggestedSalesPrice;
+
+      if (finalSuggestedPrice !== undefined) {
         return {
           ...item,
           comparison: item.comparison ? {
             ...item.comparison,
-            suggestedSalesPrice: editedSuggestions[item.stockCode],
+            suggestedSalesPrice: finalSuggestedPrice,
           } : null,
         };
       }
@@ -259,8 +265,9 @@ export default function PriceComparisonPage() {
     setUpdatingPrices((prev) => ({ ...prev, [key]: true }));
 
     try {
-      // Düzenlenmiş fiyatı al veya mevcut öneriyi kullan
+      // Düzenlenmiş fiyatı al veya önce tavsiye raf fiyatını, sonra önerilen satış fiyatını kullan
       const newSalesPrice = editedSavedSuggestions[comparisonId]?.[item.stockCode] 
+        || item.uploaded.uploadedShelfPrice
         || item.comparison?.suggestedSalesPrice;
       const newPurchasePrice = item.uploaded.uploadedPurchasePrice;
 
@@ -269,6 +276,7 @@ export default function PriceComparisonPage() {
         newPurchasePrice,
         newSalesPrice,
         editedValue: editedSavedSuggestions[comparisonId]?.[item.stockCode],
+        shelfPrice: item.uploaded.uploadedShelfPrice,
         originalSuggestion: item.comparison?.suggestedSalesPrice,
       });
 
@@ -308,11 +316,101 @@ export default function PriceComparisonPage() {
       console.log('✅ API Success Response:', result);
 
       alert(`✅ ${item.stockCode} - Fiyatlar başarıyla güncellendi!\n\nAlış: ₺${newPurchasePrice.toFixed(2)}\nSatış: ₺${newSalesPrice.toFixed(2)}`);
+      return true;
     } catch (err) {
       console.error('❌ Fiyat güncelleme hatası:', err);
       alert(`❌ Fiyat güncellenemedi: ${(err as Error).message}`);
+      return false;
     } finally {
       setUpdatingPrices((prev) => ({ ...prev, [key]: false }));
+    }
+  };
+
+  const handleBulkUpdate = async (comparisonId: string, results: ComparisonResult[]) => {
+    if (!confirm(`⚠️ ${results.filter(r => r.found).length} ürünün fiyatları toplu olarak güncellenecek. Devam etmek istiyor musunuz?`)) {
+      return;
+    }
+
+    setBulkUpdating((prev) => ({ ...prev, [comparisonId]: true }));
+    
+    let successCount = 0;
+    let failCount = 0;
+    const errors: string[] = [];
+
+    try {
+      // Bulunan ve güncellenebilir ürünleri filtrele
+      const updateableItems = results.filter(item => {
+        const hasPrice = editedSavedSuggestions[comparisonId]?.[item.stockCode]
+          || item.uploaded.uploadedShelfPrice
+          || item.comparison?.suggestedSalesPrice;
+        return item.found && hasPrice && item.uploaded.uploadedPurchasePrice;
+      });
+
+      console.log(`🔄 Toplu güncelleme başlatılıyor: ${updateableItems.length} ürün`);
+
+      // Her ürünü sırayla güncelle
+      for (const item of updateableItems) {
+        try {
+          const newSalesPrice = editedSavedSuggestions[comparisonId]?.[item.stockCode]
+            || item.uploaded.uploadedShelfPrice
+            || item.comparison?.suggestedSalesPrice;
+          const newPurchasePrice = item.uploaded.uploadedPurchasePrice;
+
+          if (!newSalesPrice || !newPurchasePrice) continue;
+
+          const response = await fetch('/api/update-stock-price', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              stockCode: item.stockCode,
+              stockName: item.current?.stockName,
+              purchasePrice: newPurchasePrice,
+              salesPrice: newSalesPrice,
+            }),
+          });
+
+          if (response.ok) {
+            successCount++;
+            console.log(`✅ ${item.stockCode} güncellendi`);
+          } else {
+            failCount++;
+            const errorData = await response.json().catch(() => ({}));
+            errors.push(`${item.stockCode}: ${errorData.error || 'Hata'}`);
+            console.error(`❌ ${item.stockCode} güncellenemedi:`, errorData);
+          }
+
+          // Her 5 üründe bir kısa bekleme (API yükünü azaltmak için)
+          if ((successCount + failCount) % 5 === 0) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+          }
+        } catch (err) {
+          failCount++;
+          errors.push(`${item.stockCode}: ${(err as Error).message}`);
+          console.error(`❌ ${item.stockCode} hatası:`, err);
+        }
+      }
+
+      // Sonuç mesajı
+      let resultMessage = `✅ Toplu Güncelleme Tamamlandı!\n\n`;
+      resultMessage += `✔️ Başarılı: ${successCount} ürün\n`;
+      if (failCount > 0) {
+        resultMessage += `❌ Başarısız: ${failCount} ürün\n`;
+        if (errors.length > 0) {
+          resultMessage += `\nHatalar:\n${errors.slice(0, 5).join('\n')}`;
+          if (errors.length > 5) {
+            resultMessage += `\n... ve ${errors.length - 5} hata daha`;
+          }
+        }
+      }
+
+      alert(resultMessage);
+    } catch (err) {
+      console.error('❌ Toplu güncelleme hatası:', err);
+      alert(`❌ Toplu güncelleme başarısız: ${(err as Error).message}`);
+    } finally {
+      setBulkUpdating((prev) => ({ ...prev, [comparisonId]: false }));
     }
   };
 
@@ -503,6 +601,8 @@ export default function PriceComparisonPage() {
                                 value={
                                   editedSuggestions[item.stockCode] !== undefined
                                     ? editedSuggestions[item.stockCode]
+                                    : item.uploaded.uploadedShelfPrice
+                                    ? item.uploaded.uploadedShelfPrice.toFixed(2)
                                     : item.comparison?.suggestedSalesPrice
                                     ? item.comparison.suggestedSalesPrice.toFixed(2)
                                     : ''
@@ -571,6 +671,24 @@ export default function PriceComparisonPage() {
                       </div>
                     </div>
                     <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        className="bg-[#63A860] hover:bg-[#507d4e] text-white"
+                        onClick={() => handleBulkUpdate(saved.id, saved.results)}
+                        disabled={bulkUpdating[saved.id]}
+                      >
+                        {bulkUpdating[saved.id] ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                            Güncelleniyor...
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle2 className="h-4 w-4 mr-2" />
+                            Toplu Güncelle ({saved.results.filter(r => r.found).length})
+                          </>
+                        )}
+                      </Button>
                       <Button
                         variant="outline"
                         size="sm"
@@ -682,7 +800,7 @@ export default function PriceComparisonPage() {
                               </span>
                             </td>
                             <td className="px-3 py-3">
-                              {item.found && (item.comparison?.suggestedSalesPrice || item.uploaded.uploadedPurchasePrice) ? (
+                              {item.found && (item.uploaded.uploadedShelfPrice || item.comparison?.suggestedSalesPrice || item.uploaded.uploadedPurchasePrice) ? (
                                 <input
                                   type="number"
                                   step="0.01"
@@ -690,6 +808,8 @@ export default function PriceComparisonPage() {
                                   value={
                                     editedSavedSuggestions[saved.id]?.[item.stockCode] !== undefined
                                       ? editedSavedSuggestions[saved.id][item.stockCode]
+                                      : item.uploaded.uploadedShelfPrice
+                                      ? item.uploaded.uploadedShelfPrice.toFixed(2)
                                       : item.comparison?.suggestedSalesPrice?.toFixed(2) || ''
                                   }
                                   onChange={(e) =>
@@ -703,7 +823,7 @@ export default function PriceComparisonPage() {
                               )}
                             </td>
                             <td className="px-3 py-3 text-center">
-                              {item.found && (item.comparison?.suggestedSalesPrice || item.uploaded.uploadedPurchasePrice) ? (
+                              {item.found && (item.uploaded.uploadedShelfPrice || item.comparison?.suggestedSalesPrice || item.uploaded.uploadedPurchasePrice) ? (
                                 <Button
                                   size="sm"
                                   variant="outline"

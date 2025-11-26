@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
          ISNULL(COUNT(CASE WHEN TRANSTYPE = 104 THEN 1 END), 0) AS TotalReturnOrders,
          ISNULL(COUNT(CASE WHEN STATUS = 4 THEN 1 END), 0) AS TotalCancelledOrders,
          ISNULL(SUM(CASE WHEN STATUS = 4 THEN TOTAL ELSE 0 END), 0) AS TotalCancelledAmount
-        FROM VE_INVOICE WHERE TRANSDATE = convert(date, GETDATE()) AND DEPOTID IN (24, 25) AND (TRANSTYPE IN (101, 104) OR STATUS = 4)`
+        FROM VE_INVOICE WHERE TRANSDATE = convert(date, GETDATE()) AND DEPOTID IN (24, 25, 26) AND (TRANSTYPE IN (101, 104) OR STATUS = 4)`
       : `SELECT 
          ISNULL(SUM(CASE WHEN TRANSTYPE = 101 AND STATUS != 4 THEN TOTAL ELSE 0 END), 0) AS TotalRevenue,
          ISNULL(SUM(CASE WHEN TRANSTYPE = 104 THEN TOTAL ELSE 0 END), 0) AS TotalReturns,
@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
          ISNULL(COUNT(CASE WHEN TRANSTYPE = 104 THEN 1 END), 0) AS TotalReturnOrders,
          ISNULL(COUNT(CASE WHEN STATUS = 4 THEN 1 END), 0) AS TotalCancelledOrders,
          ISNULL(SUM(CASE WHEN STATUS = 4 THEN TOTAL ELSE 0 END), 0) AS TotalCancelledAmount
-        FROM VE_INVOICE WHERE TRANSDATE BETWEEN '${startDate}' AND '${endDate}' AND DEPOTID IN (24, 25) AND (TRANSTYPE IN (101, 104) OR STATUS = 4)`;
+        FROM VE_INVOICE WHERE TRANSDATE BETWEEN '${startDate}' AND '${endDate}' AND DEPOTID IN (24, 25, 26) AND (TRANSTYPE IN (101, 104) OR STATUS = 4)`;
   
   try {
     const response = await fetch('http://185.110.241.184:8640/TrexIntegrationService/REST/GetJson', {

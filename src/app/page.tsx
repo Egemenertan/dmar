@@ -269,7 +269,7 @@ export default function Home() {
             ) : (
               <div className="text-3xl font-bold">₺{stats.totalRevenue.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
             )}
-            <p className="text-xs text-muted-foreground pt-1">ERENKÖY & COURTYARD</p>
+            <p className="text-xs text-muted-foreground pt-1">ERENKÖY & COURTYARD & LA ISLA</p>
           </CardContent>
         </Card>
 
@@ -285,7 +285,7 @@ export default function Home() {
             ) : (
               <div className="text-3xl font-bold">₺{stats.totalReturns.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
             )}
-            <p className="text-xs text-muted-foreground pt-1">ERENKÖY & COURTYARD</p>
+            <p className="text-xs text-muted-foreground pt-1">ERENKÖY & COURTYARD & LA ISLA</p>
           </CardContent>
         </Card>
 
