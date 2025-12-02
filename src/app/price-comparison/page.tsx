@@ -76,6 +76,7 @@ export default function PriceComparisonPage() {
   const [updatingPrices, setUpdatingPrices] = useState<{ [key: string]: boolean }>({});
   const [bulkUpdating, setBulkUpdating] = useState<{ [comparisonId: string]: boolean }>({});
   const [loadingComparisons, setLoadingComparisons] = useState(true);
+  const [selectedItems, setSelectedItems] = useState<{ [comparisonId: string]: Set<string> }>({});
 
   // Hybrid: LocalStorage + Supabase (fallback)
   useEffect(() => {
@@ -125,7 +126,7 @@ export default function PriceComparisonPage() {
             localStorage.setItem('priceComparisons', JSON.stringify(formattedComparisons));
             console.log('✅ Supabase\'den yüklendi:', formattedComparisons.length, 'karşılaştırma');
           }
-        } catch (err) {
+        } catch {
           // Supabase hatası - LocalStorage verisi varsa sorun yok
           console.log('ℹ️ Supabase yüklenemedi, LocalStorage kullanılıyor');
         }
@@ -239,7 +240,7 @@ export default function PriceComparisonPage() {
           } else {
             console.log('ℹ️ Supabase kayıt başarısız, LocalStorage kullanılıyor');
           }
-        } catch (err) {
+        } catch {
           console.log('ℹ️ Supabase hata, LocalStorage kullanılıyor');
         }
       }
@@ -415,8 +416,43 @@ export default function PriceComparisonPage() {
     }
   };
 
+  const handleToggleItem = (comparisonId: string, stockCode: string) => {
+    setSelectedItems((prev) => {
+      const newSelected = new Set(prev[comparisonId] || []);
+      if (newSelected.has(stockCode)) {
+        newSelected.delete(stockCode);
+      } else {
+        newSelected.add(stockCode);
+      }
+      return { ...prev, [comparisonId]: newSelected };
+    });
+  };
+
+  const handleToggleAll = (comparisonId: string, results: ComparisonResult[]) => {
+    const foundItems = results.filter(r => r.found);
+    const allSelected = foundItems.every(item => selectedItems[comparisonId]?.has(item.stockCode));
+    
+    setSelectedItems((prev) => {
+      if (allSelected) {
+        // Tümünü kaldır
+        return { ...prev, [comparisonId]: new Set() };
+      } else {
+        // Tümünü seç
+        return { ...prev, [comparisonId]: new Set(foundItems.map(item => item.stockCode)) };
+      }
+    });
+  };
+
   const handleBulkUpdate = async (comparisonId: string, results: ComparisonResult[]) => {
-    if (!confirm(`⚠️ ${results.filter(r => r.found).length} ürünün fiyatları toplu olarak güncellenecek. Devam etmek istiyor musunuz?`)) {
+    const selected = selectedItems[comparisonId];
+    const selectedCount = selected?.size || 0;
+    
+    if (selectedCount === 0) {
+      alert('⚠️ Lütfen güncellenecek ürünleri seçin!');
+      return;
+    }
+
+    if (!confirm(`⚠️ Seçili ${selectedCount} ürünün fiyatları güncellenecek. Devam etmek istiyor musunuz?`)) {
       return;
     }
 
@@ -427,8 +463,9 @@ export default function PriceComparisonPage() {
     const errors: string[] = [];
 
     try {
-      // Bulunan ve güncellenebilir ürünleri filtrele
+      // Sadece seçili ürünleri güncelle
       const updateableItems = results.filter(item => {
+        if (!selected?.has(item.stockCode)) return false;
         const hasPrice = editedSavedSuggestions[comparisonId]?.[item.stockCode]
           || item.uploaded.uploadedShelfPrice
           || item.comparison?.suggestedSalesPrice;
@@ -495,6 +532,11 @@ export default function PriceComparisonPage() {
       }
 
       alert(resultMessage);
+      
+      // Başarılı güncelleme sonrası seçimleri temizle
+      if (successCount > 0) {
+        setSelectedItems((prev) => ({ ...prev, [comparisonId]: new Set() }));
+      }
     } catch (err) {
       console.error('❌ Toplu güncelleme hatası:', err);
       alert(`❌ Toplu güncelleme başarısız: ${(err as Error).message}`);
@@ -625,7 +667,7 @@ export default function PriceComparisonPage() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
-                      {comparisonResults.map((item, index) => (
+                      {comparisonResults.filter(item => item.found).map((item, index) => (
                         <tr key={index} className={`
                           transition-all duration-150 hover:bg-[#63A860]/5
                           ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}
@@ -766,12 +808,17 @@ export default function PriceComparisonPage() {
                         </Badge>
                       </div>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 items-center">
+                      {(selectedItems[saved.id]?.size || 0) > 0 && (
+                        <Badge className="bg-blue-100 text-blue-800 border-blue-300">
+                          {selectedItems[saved.id]?.size} ürün seçili
+                        </Badge>
+                      )}
                       <Button
                         size="sm"
-                        className="bg-[#63A860] hover:bg-[#507d4e] text-white"
+                        className="bg-[#63A860] hover:bg-[#507d4e] text-white disabled:opacity-50 disabled:cursor-not-allowed"
                         onClick={() => handleBulkUpdate(saved.id, saved.results)}
-                        disabled={bulkUpdating[saved.id]}
+                        disabled={bulkUpdating[saved.id] || (selectedItems[saved.id]?.size || 0) === 0}
                       >
                         {bulkUpdating[saved.id] ? (
                           <>
@@ -781,7 +828,7 @@ export default function PriceComparisonPage() {
                         ) : (
                           <>
                             <CheckCircle2 className="h-4 w-4 mr-2" />
-                            Toplu Güncelle ({saved.results.filter(r => r.found).length})
+                            Seçilileri Güncelle
                           </>
                         )}
                       </Button>
@@ -824,7 +871,7 @@ export default function PriceComparisonPage() {
                                     .delete()
                                     .eq('id', saved.id);
                                   console.log('✅ Supabase\'den silindi:', saved.id);
-                                } catch (err) {
+                                } catch {
                                   console.log('ℹ️ Supabase silme hatası (devam ediliyor)');
                                 }
                               }
@@ -850,6 +897,46 @@ export default function PriceComparisonPage() {
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="border-b-2" style={{ background: 'linear-gradient(to right, #f9fafb, #f3f4f6)', borderBottomColor: '#63A860' }}>
+                          <th className="px-3 py-2 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider w-12">
+                            <style jsx>{`
+                              input[type="checkbox"].custom-checkbox-header {
+                                appearance: none;
+                                width: 18px;
+                                height: 18px;
+                                border: 2px solid #9ca3af;
+                                border-radius: 4px;
+                                background-color: white;
+                                cursor: pointer;
+                                position: relative;
+                                transition: all 0.2s;
+                              }
+                              input[type="checkbox"].custom-checkbox-header:hover {
+                                border-color: #63A860;
+                              }
+                              input[type="checkbox"].custom-checkbox-header:checked {
+                                background-color: white;
+                                border-color: #63A860;
+                              }
+                              input[type="checkbox"].custom-checkbox-header:checked::after {
+                                content: '✓';
+                                position: absolute;
+                                top: 50%;
+                                left: 50%;
+                                transform: translate(-50%, -50%);
+                                color: #63A860;
+                                font-size: 14px;
+                                font-weight: bold;
+                              }
+                            `}</style>
+                            <input
+                              type="checkbox"
+                              checked={saved.results.filter(r => r.found).length > 0 && 
+                                saved.results.filter(r => r.found).every(item => selectedItems[saved.id]?.has(item.stockCode))}
+                              onChange={() => handleToggleAll(saved.id, saved.results)}
+                              className="custom-checkbox-header"
+                              title="Tümünü Seç/Kaldır"
+                            />
+                          </th>
                           <th className="px-3 py-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Kod</th>
                           <th className="px-3 py-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Ürün</th>
                           <th className="px-3 py-2 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">Yük. Alış</th>
@@ -864,11 +951,55 @@ export default function PriceComparisonPage() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100">
-                        {saved.results.map((item, index) => (
+                        {saved.results.filter(item => item.found).map((item, index) => (
                           <tr key={index} className={`
-                            transition-all duration-150 hover:bg-[#63A860]/5
+                            transition-all duration-200 hover:bg-[#63A860]/5
                             ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}
-                          `}>
+                            ${selectedItems[saved.id]?.has(item.stockCode) ? 'relative' : ''}
+                          `}
+                          style={selectedItems[saved.id]?.has(item.stockCode) ? {
+                            boxShadow: 'inset 0 0 0 2px #63A860',
+                            borderRadius: '1rem',
+                          } : {}}
+                          >
+                            <td className={`px-3 py-3 text-center ${selectedItems[saved.id]?.has(item.stockCode) ? 'rounded-l-2xl' : ''}`}>
+                              <style jsx>{`
+                                input[type="checkbox"].custom-checkbox {
+                                  appearance: none;
+                                  width: 18px;
+                                  height: 18px;
+                                  border: 2px solid #d1d5db;
+                                  border-radius: 4px;
+                                  background-color: white;
+                                  cursor: pointer;
+                                  position: relative;
+                                  transition: all 0.2s;
+                                }
+                                input[type="checkbox"].custom-checkbox:hover {
+                                  border-color: #63A860;
+                                }
+                                input[type="checkbox"].custom-checkbox:checked {
+                                  background-color: white;
+                                  border-color: #63A860;
+                                }
+                                input[type="checkbox"].custom-checkbox:checked::after {
+                                  content: '✓';
+                                  position: absolute;
+                                  top: 50%;
+                                  left: 50%;
+                                  transform: translate(-50%, -50%);
+                                  color: #63A860;
+                                  font-size: 14px;
+                                  font-weight: bold;
+                                }
+                              `}</style>
+                              <input
+                                type="checkbox"
+                                checked={selectedItems[saved.id]?.has(item.stockCode) || false}
+                                onChange={() => handleToggleItem(saved.id, item.stockCode)}
+                                className="custom-checkbox"
+                              />
+                            </td>
                             <td className="px-3 py-3">
                               <span className="font-mono text-xs font-semibold text-gray-700 bg-gray-100 px-2 py-1 rounded">
                                 {item.stockCode}
@@ -938,7 +1069,7 @@ export default function PriceComparisonPage() {
                                 <span className="text-gray-400 text-xs">-</span>
                               )}
                             </td>
-                            <td className="px-3 py-3 text-center">
+                            <td className={`px-3 py-3 text-center ${selectedItems[saved.id]?.has(item.stockCode) ? 'rounded-r-2xl' : ''}`}>
                               {item.found && (item.uploaded.uploadedShelfPrice || item.comparison?.suggestedSalesPrice || item.uploaded.uploadedPurchasePrice) ? (
                                 <Button
                                   size="sm"
