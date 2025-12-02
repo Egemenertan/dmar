@@ -952,15 +952,24 @@ export default function PriceComparisonPage() {
                       </thead>
                       <tbody className="divide-y divide-gray-100">
                         {saved.results.filter(item => item.found).map((item, index) => (
-                          <tr key={index} className={`
-                            transition-all duration-200 hover:bg-[#63A860]/5
-                            ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}
-                            ${selectedItems[saved.id]?.has(item.stockCode) ? 'relative' : ''}
-                          `}
-                          style={selectedItems[saved.id]?.has(item.stockCode) ? {
-                            boxShadow: 'inset 0 0 0 2px #63A860',
-                            borderRadius: '1rem',
-                          } : {}}
+                          <tr 
+                            key={index} 
+                            className={`
+                              transition-all duration-200 hover:bg-[#63A860]/5 cursor-pointer
+                              ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}
+                              ${selectedItems[saved.id]?.has(item.stockCode) ? 'relative' : ''}
+                            `}
+                            style={selectedItems[saved.id]?.has(item.stockCode) ? {
+                              boxShadow: 'inset 0 0 0 2px #63A860',
+                              borderRadius: '1rem',
+                            } : {}}
+                            onClick={(e) => {
+                              // Input veya button'a tıklanmadıysa satırı seç
+                              const target = e.target as HTMLElement;
+                              if (!target.closest('input') && !target.closest('button')) {
+                                handleToggleItem(saved.id, item.stockCode);
+                              }
+                            }}
                           >
                             <td className={`px-3 py-3 text-center ${selectedItems[saved.id]?.has(item.stockCode) ? 'rounded-l-2xl' : ''}`}>
                               <style jsx>{`
@@ -1074,7 +1083,7 @@ export default function PriceComparisonPage() {
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  className="h-7 text-xs px-2 hover:bg-[#63A860]/10"
+                                  className="h-7 text-xs px-2 hover:bg-[#63A860]/10 cursor-pointer"
                                   style={{ borderColor: '#63A860', color: '#63A860' }}
                                   onClick={() => handleUpdatePrice(saved.id, item)}
                                   disabled={updatingPrices[`${saved.id}-${item.stockCode}`]}
