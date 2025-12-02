@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import * as XLSX from 'xlsx';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ComparisonResult {
   stockCode: string;
@@ -53,6 +54,8 @@ interface SummaryStats {
 }
 
 export default function PriceComparisonPage() {
+  const { user, supabase } = useAuth();
+  
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [uploadedData, setUploadedData] = useState<ParsedRow[]>([]);
   const [comparisonResults, setComparisonResults] = useState<ComparisonResult[]>([]);
@@ -72,29 +75,73 @@ export default function PriceComparisonPage() {
   const [editedSavedSuggestions, setEditedSavedSuggestions] = useState<{ [comparisonId: string]: { [stockCode: string]: number } }>({});
   const [updatingPrices, setUpdatingPrices] = useState<{ [key: string]: boolean }>({});
   const [bulkUpdating, setBulkUpdating] = useState<{ [comparisonId: string]: boolean }>({});
+  const [loadingComparisons, setLoadingComparisons] = useState(true);
 
-  // LocalStorage'dan kayıtları yükle
+  // Hybrid: LocalStorage + Supabase (fallback)
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem('priceComparisons');
-      if (saved) {
-        setSavedComparisons(JSON.parse(saved));
+    const loadComparisons = async () => {
+      setLoadingComparisons(true);
+      
+      // 1. Önce LocalStorage'dan yükle (hızlı)
+      try {
+        const localData = localStorage.getItem('priceComparisons');
+        if (localData) {
+          const parsed = JSON.parse(localData);
+          setSavedComparisons(parsed);
+          console.log('✅ LocalStorage\'dan yüklendi:', parsed.length, 'karşılaştırma');
+        }
+      } catch (err) {
+        console.error('LocalStorage okuma hatası:', err);
       }
-    } catch (err) {
-      console.error('Kayıtlar yüklenemedi:', err);
-    }
-  }, []);
 
-  // Kayıtlar değiştiğinde localStorage'a kaydet
-  useEffect(() => {
-    try {
-      if (savedComparisons.length > 0) {
-        localStorage.setItem('priceComparisons', JSON.stringify(savedComparisons));
-      } else {
-        localStorage.removeItem('priceComparisons'); // Tüm kayıtlar silinirse temizle
+      // 2. Eğer kullanıcı giriş yapmışsa Supabase'den de dene (optional)
+      if (user?.id && supabase) {
+        try {
+          const { data, error } = await supabase
+            .from('price_comparisons')
+            .select('*')
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false });
+
+          if (!error && data) {
+            const formattedComparisons = data.map((item) => ({
+              id: item.id,
+              fileName: item.file_name,
+              savedAt: item.created_at,
+              results: item.comparison_data as ComparisonResult[],
+              summary: {
+                totalProducts: item.total_products || 0,
+                foundProducts: item.found_products || 0,
+                notFoundProducts: (item.total_products || 0) - (item.found_products || 0),
+                avgPurchasePriceDiff: item.avg_price_difference || 0,
+                avgSalesPriceDiff: 0,
+                productsWithPriceIncrease: 0,
+                productsWithPriceDecrease: 0,
+                productsNeedingUpdate: 0,
+              },
+            }));
+            setSavedComparisons(formattedComparisons);
+            // LocalStorage'a da kaydet (sync)
+            localStorage.setItem('priceComparisons', JSON.stringify(formattedComparisons));
+            console.log('✅ Supabase\'den yüklendi:', formattedComparisons.length, 'karşılaştırma');
+          }
+        } catch (err) {
+          // Supabase hatası - LocalStorage verisi varsa sorun yok
+          console.log('ℹ️ Supabase yüklenemedi, LocalStorage kullanılıyor');
+        }
       }
-    } catch (err) {
-      console.error('Kayıtlar kaydedilemedi:', err);
+      
+      setLoadingComparisons(false);
+    };
+
+    loadComparisons();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]); // Sadece user.id değiştiğinde çağır
+
+  // LocalStorage'a kaydet (her değişiklikte)
+  useEffect(() => {
+    if (savedComparisons.length > 0) {
+      localStorage.setItem('priceComparisons', JSON.stringify(savedComparisons));
     }
   }, [savedComparisons]);
 
@@ -144,102 +191,144 @@ export default function PriceComparisonPage() {
   const handleSaveComparison = async () => {
     if (!comparisonResults.length || !summary) return;
 
-    // Kullanıcının düzenlediği önerileri kaydet veya tavsiye raf fiyatını kullan
-    const resultsWithEditedSuggestions = comparisonResults.map((item) => {
-      const finalSuggestedPrice = editedSuggestions[item.stockCode] !== undefined
-        ? editedSuggestions[item.stockCode]
-        : item.uploaded.uploadedShelfPrice
-        || item.comparison?.suggestedSalesPrice;
-
-      if (finalSuggestedPrice !== undefined) {
-        return {
-          ...item,
-          comparison: item.comparison ? {
-            ...item.comparison,
-            suggestedSalesPrice: finalSuggestedPrice,
-          } : null,
-        };
-      }
-      return item;
-    });
-
-    const newComparison = {
-      id: Date.now().toString(),
-      fileName: fileName || 'Karşılaştırma',
-      savedAt: new Date().toISOString(),
-      results: resultsWithEditedSuggestions,
-      summary: summary,
-    };
-
-    setSavedComparisons((prev) => [newComparison, ...prev]);
-    setSuggestionsSent(true);
-
-    // Telegram mesajı gönder
     try {
-      // Mesaj içeriğini oluştur
-      let telegramMessage = `📊 *FİYAT KARŞILAŞTIRMA RAPORU*\n\n`;
-      telegramMessage += `📁 *Dosya:* ${fileName || 'Karşılaştırma'}\n`;
-      telegramMessage += `📅 *Tarih:* ${new Date().toLocaleString('tr-TR')}\n`;
-      telegramMessage += `📦 *Toplam:* ${summary.totalProducts} ürün\n`;
-      telegramMessage += `✅ *Bulunan:* ${summary.foundProducts} ürün\n`;
-      telegramMessage += `💰 *Ort. Fark:* ₺${summary.avgPurchasePriceDiff.toFixed(2)}\n\n`;
-      telegramMessage += `━━━━━━━━━━━━━━━━━━━━━\n\n`;
-      
-      // Tüm bulunan ürünleri ekle
-      const foundProducts = resultsWithEditedSuggestions
-        .filter(item => item.found)
-        .slice(0, 20); // İlk 20 ürün
-      
-      if (foundProducts.length > 0) {
-        foundProducts.forEach((item, index) => {
-          telegramMessage += `*${index + 1}. ${item.current?.stockName}*\n`;
-          telegramMessage += `📌 Kod: \`${item.stockCode}\`\n`;
-          telegramMessage += `\n`;
-          telegramMessage += `💵 *Yüklenen Alış:* ₺${item.uploaded.uploadedPurchasePrice?.toFixed(2) || '-'}\n`;
-          telegramMessage += `💵 *Güncel Alış:* ₺${item.current?.currentPurchasePrice?.toFixed(2) || '-'}\n`;
-          telegramMessage += `💵 *Güncel Satış:* ₺${item.current?.currentSalesPrice?.toFixed(2) || '-'}\n`;
-          
-          if (item.uploaded.uploadedShelfPrice) {
-            telegramMessage += `🏷️ *Tavsiye Raf:* ₺${item.uploaded.uploadedShelfPrice.toFixed(2)}\n`;
+      setLoading(true);
+
+      // Kullanıcının düzenlediği önerileri kaydet veya tavsiye raf fiyatını kullan
+      const resultsWithEditedSuggestions = comparisonResults.map((item) => {
+        const finalSuggestedPrice = editedSuggestions[item.stockCode] !== undefined
+          ? editedSuggestions[item.stockCode]
+          : item.uploaded.uploadedShelfPrice
+          || item.comparison?.suggestedSalesPrice;
+
+        if (finalSuggestedPrice !== undefined) {
+          return {
+            ...item,
+            comparison: item.comparison ? {
+              ...item.comparison,
+              suggestedSalesPrice: finalSuggestedPrice,
+            } : null,
+          };
+        }
+        return item;
+      });
+
+      let newComparisonId = Date.now().toString();
+      let savedAt = new Date().toISOString();
+
+      // 1. Önce Supabase'e kaydetmeyi dene (opsiyonel)
+      if (user?.id && supabase) {
+        try {
+          const { data, error: insertError } = await supabase
+            .from('price_comparisons')
+            .insert({
+              user_id: user.id,
+              file_name: fileName || 'Karşılaştırma',
+              total_products: summary.totalProducts,
+              found_products: summary.foundProducts,
+              avg_price_difference: summary.avgPurchasePriceDiff,
+              comparison_data: resultsWithEditedSuggestions,
+            })
+            .select()
+            .single();
+
+          if (!insertError && data) {
+            newComparisonId = data.id;
+            savedAt = data.created_at;
+            console.log('✅ Supabase\'e kaydedildi:', data.id);
+          } else {
+            console.log('ℹ️ Supabase kayıt başarısız, LocalStorage kullanılıyor');
           }
-          
-          if (item.comparison?.suggestedSalesPrice) {
-            telegramMessage += `✨ *Önerilen Satış:* ₺${item.comparison.suggestedSalesPrice.toFixed(2)}\n`;
-          }
-          
-          if (item.comparison?.purchasePriceDiffPercent) {
-            const diffIcon = item.comparison.purchasePriceDiffPercent > 0 ? '🔴' : '🟢';
-            telegramMessage += `${diffIcon} *Fark:* ${item.comparison.purchasePriceDiffPercent.toFixed(1)}%\n`;
-          }
-          
-          telegramMessage += `\n━━━━━━━━━━━━━━━━━━━━━\n\n`;
-        });
-        
-        if (resultsWithEditedSuggestions.filter(item => item.found).length > 20) {
-          telegramMessage += `_... ve ${resultsWithEditedSuggestions.filter(item => item.found).length - 20} ürün daha_\n`;
+        } catch (err) {
+          console.log('ℹ️ Supabase hata, LocalStorage kullanılıyor');
         }
       }
 
-      console.log('📤 Telegram mesajı gönderiliyor...');
-      const telegramResponse = await fetch('/api/send-telegram', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          message: telegramMessage,
-        }),
-      });
+      // 2. LocalStorage'a kaydet (her zaman)
+      const newComparison = {
+        id: newComparisonId,
+        fileName: fileName || 'Karşılaştırma',
+        savedAt: savedAt,
+        results: resultsWithEditedSuggestions,
+        summary: summary,
+      };
 
-      if (!telegramResponse.ok) {
-        const errorData = await telegramResponse.json();
-        console.error('❌ Telegram API error:', errorData);
-      } else {
-        console.log('✅ Telegram mesajı başarıyla gönderildi!');
+      setSavedComparisons((prev) => [newComparison, ...prev]);
+      setSuggestionsSent(true);
+      console.log('✅ Karşılaştırma kaydedildi (ID:', newComparisonId, ')');
+
+      // Telegram mesajı gönder
+      try {
+        // Mesaj içeriğini oluştur
+        let telegramMessage = `📊 *FİYAT KARŞILAŞTIRMA RAPORU*\n\n`;
+        telegramMessage += `📁 *Dosya:* ${fileName || 'Karşılaştırma'}\n`;
+        telegramMessage += `📅 *Tarih:* ${new Date().toLocaleString('tr-TR')}\n`;
+        telegramMessage += `📦 *Toplam:* ${summary.totalProducts} ürün\n`;
+        telegramMessage += `✅ *Bulunan:* ${summary.foundProducts} ürün\n`;
+        telegramMessage += `💰 *Ort. Fark:* ₺${summary.avgPurchasePriceDiff.toFixed(2)}\n\n`;
+        telegramMessage += `━━━━━━━━━━━━━━━━━━━━━\n\n`;
+        
+        // Tüm bulunan ürünleri ekle
+        const foundProducts = resultsWithEditedSuggestions
+          .filter(item => item.found)
+          .slice(0, 20); // İlk 20 ürün
+        
+        if (foundProducts.length > 0) {
+          foundProducts.forEach((item, index) => {
+            telegramMessage += `*${index + 1}. ${item.current?.stockName}*\n`;
+            telegramMessage += `📌 Kod: \`${item.stockCode}\`\n`;
+            telegramMessage += `\n`;
+            telegramMessage += `💵 *Yüklenen Alış:* ₺${item.uploaded.uploadedPurchasePrice?.toFixed(2) || '-'}\n`;
+            telegramMessage += `💵 *Güncel Alış:* ₺${item.current?.currentPurchasePrice?.toFixed(2) || '-'}\n`;
+            telegramMessage += `💵 *Güncel Satış:* ₺${item.current?.currentSalesPrice?.toFixed(2) || '-'}\n`;
+            
+            if (item.uploaded.uploadedShelfPrice) {
+              telegramMessage += `🏷️ *Tavsiye Raf:* ₺${item.uploaded.uploadedShelfPrice.toFixed(2)}\n`;
+            }
+            
+            if (item.comparison?.suggestedSalesPrice) {
+              telegramMessage += `✨ *Önerilen Satış:* ₺${item.comparison.suggestedSalesPrice.toFixed(2)}\n`;
+            }
+            
+            if (item.comparison?.purchasePriceDiffPercent) {
+              const diffIcon = item.comparison.purchasePriceDiffPercent > 0 ? '🔴' : '🟢';
+              telegramMessage += `${diffIcon} *Fark:* ${item.comparison.purchasePriceDiffPercent.toFixed(1)}%\n`;
+            }
+            
+            telegramMessage += `\n━━━━━━━━━━━━━━━━━━━━━\n\n`;
+          });
+          
+          if (resultsWithEditedSuggestions.filter(item => item.found).length > 20) {
+            telegramMessage += `_... ve ${resultsWithEditedSuggestions.filter(item => item.found).length - 20} ürün daha_\n`;
+          }
+        }
+
+        console.log('📤 Telegram mesajı gönderiliyor...');
+        const telegramResponse = await fetch('/api/send-telegram', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            message: telegramMessage,
+          }),
+        });
+
+        if (!telegramResponse.ok) {
+          const errorData = await telegramResponse.json();
+          console.error('❌ Telegram API error:', errorData);
+        } else {
+          console.log('✅ Telegram mesajı başarıyla gönderildi!');
+        }
+      } catch (err) {
+        console.error('❌ Telegram mesajı gönderilemedi:', err);
+        // Hata olsa bile kayıt devam etsin
       }
     } catch (err) {
-      console.error('❌ Telegram mesajı gönderilemedi:', err);
-      // Hata olsa bile kayıt devam etsin
+      console.error('❌ Karşılaştırma kaydedilemedi:', err);
+      setError(`Kaydetme hatası: ${(err as Error).message}`);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -646,9 +735,16 @@ export default function PriceComparisonPage() {
         )}
 
         {/* Kaydedilmiş Karşılaştırmalar */}
-        {savedComparisons.length > 0 && (
+        {loadingComparisons && (
+          <div className="text-center py-8">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+            <p className="mt-4 text-gray-600">Kaydedilmiş karşılaştırmalar yükleniyor...</p>
+          </div>
+        )}
+
+        {!loadingComparisons && savedComparisons.length > 0 && (
           <div className="space-y-4">
-            <h2 className="text-2xl font-bold">Kaydedilmiş Karşılaştırmalar</h2>
+            <h2 className="text-2xl font-bold">Kaydedilmiş Karşılaştırmalar ({savedComparisons.length})</h2>
             {savedComparisons.map((saved) => (
               <Card key={saved.id} className="border-blue-200">
                 <CardHeader>
@@ -716,10 +812,30 @@ export default function PriceComparisonPage() {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                        onClick={() => {
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50 cursor-pointer"
+                        onClick={async () => {
                           if (confirm('Bu karşılaştırmayı silmek istediğinize emin misiniz?')) {
-                            setSavedComparisons((prev) => prev.filter((c) => c.id !== saved.id));
+                            try {
+                              // 1. Supabase'den silmeyi dene (UUID ise)
+                              if (user?.id && supabase && saved.id.includes('-')) {
+                                try {
+                                  await supabase
+                                    .from('price_comparisons')
+                                    .delete()
+                                    .eq('id', saved.id);
+                                  console.log('✅ Supabase\'den silindi:', saved.id);
+                                } catch (err) {
+                                  console.log('ℹ️ Supabase silme hatası (devam ediliyor)');
+                                }
+                              }
+
+                              // 2. LocalStorage ve State'den sil (her zaman)
+                              setSavedComparisons((prev) => prev.filter((c) => c.id !== saved.id));
+                              console.log('✅ Karşılaştırma silindi');
+                            } catch (err) {
+                              console.error('❌ Silme hatası:', err);
+                              alert('Silme işlemi başarısız oldu!');
+                            }
                           }
                         }}
                       >

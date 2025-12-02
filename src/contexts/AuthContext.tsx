@@ -25,6 +25,7 @@ interface AuthContextType {
   signUp: (email: string, password: string) => Promise<{ error: AuthError | null }>
   signOut: () => Promise<{ error: AuthError | null }>
   refreshUserProfile: () => Promise<void>
+  supabase: typeof supabase
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -206,6 +207,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signUp,
     signOut,
     refreshUserProfile,
+    supabase,
   }
 
   return (
