@@ -86,7 +86,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state changed:', event, session)
+        // GÜVENLİK: Session bilgileri (token, email) loglanmaz
+        // console.log('Auth state changed:', event, session) // KALDIRILDI
         setSession(session)
         setUser(session?.user ?? null)
         
@@ -107,7 +108,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               
               if (profileData && (!profileData.is_admin || !profileData.is_approved)) {
                 // Admin olmayan kullanıcıyı hemen çıkış yaptır
-                console.log('Non-admin user attempted access, signing out')
+                // GÜVENLİK: Kullanıcı bilgileri loglanmaz
                 await supabase.auth.signOut()
               }
             }

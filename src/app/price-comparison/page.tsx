@@ -78,31 +78,19 @@ export default function PriceComparisonPage() {
   const [loadingComparisons, setLoadingComparisons] = useState(true);
   const [selectedItems, setSelectedItems] = useState<{ [comparisonId: string]: Set<string> }>({});
 
-  // Hybrid: LocalStorage + Supabase (fallback)
+  // Sadece Supabase kullan (LocalStorage kaldırıldı - kota sorunları nedeniyle)
   useEffect(() => {
     const loadComparisons = async () => {
       setLoadingComparisons(true);
       
-      // 1. Önce LocalStorage'dan yükle (hızlı)
-      try {
-        const localData = localStorage.getItem('priceComparisons');
-        if (localData) {
-          const parsed = JSON.parse(localData);
-          setSavedComparisons(parsed);
-          console.log('✅ LocalStorage\'dan yüklendi:', parsed.length, 'karşılaştırma');
-        }
-      } catch (err) {
-        console.error('LocalStorage okuma hatası:', err);
-      }
-
-      // 2. Eğer kullanıcı giriş yapmışsa Supabase'den de dene (optional)
       if (user?.id && supabase) {
         try {
           const { data, error } = await supabase
             .from('price_comparisons')
             .select('*')
             .eq('user_id', user.id)
-            .order('created_at', { ascending: false });
+            .order('created_at', { ascending: false })
+            .limit(100); // Son 100 karşılaştırma
 
           if (!error && data) {
             const formattedComparisons = data.map((item) => ({
@@ -122,13 +110,13 @@ export default function PriceComparisonPage() {
               },
             }));
             setSavedComparisons(formattedComparisons);
-            // LocalStorage'a da kaydet (sync)
-            localStorage.setItem('priceComparisons', JSON.stringify(formattedComparisons));
-            console.log('✅ Supabase\'den yüklendi:', formattedComparisons.length, 'karşılaştırma');
+            // Başarıyla yüklendi (log kaldırıldı - güvenlik)
           }
-        } catch {
-          // Supabase hatası - LocalStorage verisi varsa sorun yok
-          console.log('ℹ️ Supabase yüklenemedi, LocalStorage kullanılıyor');
+        } catch (err) {
+          // Hata yönetimi (detaylar production'da gizli)
+          if (process.env.NODE_ENV === 'development') {
+            console.error('Supabase yükleme hatası:', err);
+          }
         }
       }
       
@@ -139,12 +127,7 @@ export default function PriceComparisonPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]); // Sadece user.id değiştiğinde çağır
 
-  // LocalStorage'a kaydet (her değişiklikte)
-  useEffect(() => {
-    if (savedComparisons.length > 0) {
-      localStorage.setItem('priceComparisons', JSON.stringify(savedComparisons));
-    }
-  }, [savedComparisons]);
+  // LocalStorage kaldırıldı - Tüm veriler Supabase'de saklanıyor
 
   const handleDataParsed = async (data: ParsedRow[], uploadedFileName: string) => {
     setUploadedData(data);
@@ -163,16 +146,16 @@ export default function PriceComparisonPage() {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        console.error('API Error:', errorData);
         throw new Error(errorData.details || errorData.error || 'Fiyat karşılaştırması başarısız oldu');
       }
 
       const result = await response.json();
-      console.log('API Result:', result);
       setComparisonResults(result.products);
       setSummary(result.summary);
     } catch (err) {
-      console.error('Fetch Error:', err);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Fetch Error:', err);
+      }
       setError((err as Error).message);
     } finally {
       setLoading(false);
@@ -191,6 +174,12 @@ export default function PriceComparisonPage() {
 
   const handleSaveComparison = async () => {
     if (!comparisonResults.length || !summary) return;
+
+    // Kullanıcı girişi kontrolü
+    if (!user?.id || !supabase) {
+      alert('⚠️ Kaydetmek için giriş yapmanız gerekiyor!');
+      return;
+    }
 
     try {
       setLoading(true);
@@ -214,49 +203,39 @@ export default function PriceComparisonPage() {
         return item;
       });
 
-      let newComparisonId = Date.now().toString();
-      let savedAt = new Date().toISOString();
+      // Supabase'e kaydet
+      const { data, error: insertError } = await supabase
+        .from('price_comparisons')
+        .insert({
+          user_id: user.id,
+          file_name: fileName || 'Karşılaştırma',
+          total_products: summary.totalProducts,
+          found_products: summary.foundProducts,
+          avg_price_difference: summary.avgPurchasePriceDiff,
+          comparison_data: resultsWithEditedSuggestions,
+        })
+        .select()
+        .single();
 
-      // 1. Önce Supabase'e kaydetmeyi dene (opsiyonel)
-      if (user?.id && supabase) {
-        try {
-          const { data, error: insertError } = await supabase
-            .from('price_comparisons')
-            .insert({
-              user_id: user.id,
-              file_name: fileName || 'Karşılaştırma',
-              total_products: summary.totalProducts,
-              found_products: summary.foundProducts,
-              avg_price_difference: summary.avgPurchasePriceDiff,
-              comparison_data: resultsWithEditedSuggestions,
-            })
-            .select()
-            .single();
-
-          if (!insertError && data) {
-            newComparisonId = data.id;
-            savedAt = data.created_at;
-            console.log('✅ Supabase\'e kaydedildi:', data.id);
-          } else {
-            console.log('ℹ️ Supabase kayıt başarısız, LocalStorage kullanılıyor');
-          }
-        } catch {
-          console.log('ℹ️ Supabase hata, LocalStorage kullanılıyor');
-        }
+      if (insertError) {
+        throw new Error(insertError.message);
       }
 
-      // 2. LocalStorage'a kaydet (her zaman)
+      if (!data) {
+        throw new Error('Kayıt başarısız oldu');
+      }
+
+      // State'e ekle
       const newComparison = {
-        id: newComparisonId,
-        fileName: fileName || 'Karşılaştırma',
-        savedAt: savedAt,
+        id: data.id,
+        fileName: data.file_name,
+        savedAt: data.created_at,
         results: resultsWithEditedSuggestions,
         summary: summary,
       };
 
       setSavedComparisons((prev) => [newComparison, ...prev]);
       setSuggestionsSent(true);
-      console.log('✅ Karşılaştırma kaydedildi (ID:', newComparisonId, ')');
 
       // Telegram mesajı gönder
       try {
@@ -304,7 +283,6 @@ export default function PriceComparisonPage() {
           }
         }
 
-        console.log('📤 Telegram mesajı gönderiliyor...');
         const telegramResponse = await fetch('/api/send-telegram', {
           method: 'POST',
           headers: {
@@ -315,18 +293,17 @@ export default function PriceComparisonPage() {
           }),
         });
 
-        if (!telegramResponse.ok) {
+        if (!telegramResponse.ok && process.env.NODE_ENV === 'development') {
           const errorData = await telegramResponse.json();
-          console.error('❌ Telegram API error:', errorData);
-        } else {
-          console.log('✅ Telegram mesajı başarıyla gönderildi!');
+          console.error('Telegram error:', errorData);
         }
       } catch (err) {
-        console.error('❌ Telegram mesajı gönderilemedi:', err);
-        // Hata olsa bile kayıt devam etsin
+        // Telegram hatası kayıt işlemini etkilemez
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Telegram error:', err);
+        }
       }
     } catch (err) {
-      console.error('❌ Karşılaştırma kaydedilemedi:', err);
       setError(`Kaydetme hatası: ${(err as Error).message}`);
     } finally {
       setLoading(false);
@@ -361,15 +338,6 @@ export default function PriceComparisonPage() {
         || item.comparison?.suggestedSalesPrice;
       const newPurchasePrice = item.uploaded.uploadedPurchasePrice;
 
-      console.log('🔄 Güncelleme başlatılıyor:', {
-        stockCode: item.stockCode,
-        newPurchasePrice,
-        newSalesPrice,
-        editedValue: editedSavedSuggestions[comparisonId]?.[item.stockCode],
-        shelfPrice: item.uploaded.uploadedShelfPrice,
-        originalSuggestion: item.comparison?.suggestedSalesPrice,
-      });
-
       if (!newSalesPrice || !newPurchasePrice) {
         alert('Fiyat bilgileri eksik!');
         return;
@@ -389,26 +357,24 @@ export default function PriceComparisonPage() {
         }),
       });
 
-      console.log('📡 API Response status:', response.status);
-
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('❌ API Error Response:', errorText);
         try {
           const errorData = JSON.parse(errorText);
           throw new Error(errorData.error || errorData.details || 'Fiyat güncellenemedi');
         } catch {
-          throw new Error('Fiyat güncellenemedi: ' + errorText.substring(0, 200));
+          throw new Error('Fiyat güncellenemedi');
         }
       }
 
-      const result = await response.json();
-      console.log('✅ API Success Response:', result);
+      await response.json();
 
       alert(`✅ ${item.stockCode} - Fiyatlar başarıyla güncellendi!\n\nAlış: ₺${newPurchasePrice.toFixed(2)}\nSatış: ₺${newSalesPrice.toFixed(2)}`);
       return true;
     } catch (err) {
-      console.error('❌ Fiyat güncelleme hatası:', err);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Fiyat güncelleme hatası:', err);
+      }
       alert(`❌ Fiyat güncellenemedi: ${(err as Error).message}`);
       return false;
     } finally {
@@ -472,8 +438,6 @@ export default function PriceComparisonPage() {
         return item.found && hasPrice && item.uploaded.uploadedPurchasePrice;
       });
 
-      console.log(`🔄 Toplu güncelleme başlatılıyor: ${updateableItems.length} ürün`);
-
       // Her ürünü sırayla güncelle
       for (const item of updateableItems) {
         try {
@@ -499,12 +463,10 @@ export default function PriceComparisonPage() {
 
           if (response.ok) {
             successCount++;
-            console.log(`✅ ${item.stockCode} güncellendi`);
           } else {
             failCount++;
             const errorData = await response.json().catch(() => ({}));
             errors.push(`${item.stockCode}: ${errorData.error || 'Hata'}`);
-            console.error(`❌ ${item.stockCode} güncellenemedi:`, errorData);
           }
 
           // Her 5 üründe bir kısa bekleme (API yükünü azaltmak için)
@@ -514,7 +476,6 @@ export default function PriceComparisonPage() {
         } catch (err) {
           failCount++;
           errors.push(`${item.stockCode}: ${(err as Error).message}`);
-          console.error(`❌ ${item.stockCode} hatası:`, err);
         }
       }
 
@@ -538,7 +499,9 @@ export default function PriceComparisonPage() {
         setSelectedItems((prev) => ({ ...prev, [comparisonId]: new Set() }));
       }
     } catch (err) {
-      console.error('❌ Toplu güncelleme hatası:', err);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Toplu güncelleme hatası:', err);
+      }
       alert(`❌ Toplu güncelleme başarısız: ${(err as Error).message}`);
     } finally {
       setBulkUpdating((prev) => ({ ...prev, [comparisonId]: false }));
@@ -863,25 +826,25 @@ export default function PriceComparisonPage() {
                         onClick={async () => {
                           if (confirm('Bu karşılaştırmayı silmek istediğinize emin misiniz?')) {
                             try {
-                              // 1. Supabase'den silmeyi dene (UUID ise)
-                              if (user?.id && supabase && saved.id.includes('-')) {
-                                try {
-                                  await supabase
-                                    .from('price_comparisons')
-                                    .delete()
-                                    .eq('id', saved.id);
-                                  console.log('✅ Supabase\'den silindi:', saved.id);
-                                } catch {
-                                  console.log('ℹ️ Supabase silme hatası (devam ediliyor)');
+                              // Supabase'den sil
+                              if (user?.id && supabase) {
+                                const { error } = await supabase
+                                  .from('price_comparisons')
+                                  .delete()
+                                  .eq('id', saved.id);
+                                
+                                if (error) {
+                                  throw new Error(error.message);
                                 }
                               }
 
-                              // 2. LocalStorage ve State'den sil (her zaman)
+                              // State'den sil
                               setSavedComparisons((prev) => prev.filter((c) => c.id !== saved.id));
-                              console.log('✅ Karşılaştırma silindi');
                             } catch (err) {
-                              console.error('❌ Silme hatası:', err);
-                              alert('Silme işlemi başarısız oldu!');
+                              if (process.env.NODE_ENV === 'development') {
+                                console.error('Silme hatası:', err);
+                              }
+                              alert(`❌ Silme işlemi başarısız: ${(err as Error).message}`);
                             }
                           }
                         }}
